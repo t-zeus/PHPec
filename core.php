@@ -1,9 +1,8 @@
 <?php
 //PHPec框架核心类,负责中间件加载和调度
+defined('APP_PATH')  || define('APP_PATH',dirname($_SERVER['SCRIPT_FILENAME']));
 include __DIR__.'/interface.php';
 include __DIR__.'/helper.php';
-include __DIR__.'/base_control.php';
-defined('APP_PATH')  || define('APP_PATH',dirname($_SERVER['SCRIPT_FILENAME']));
 
 final class PHPec{
 	private $mObj = array();
@@ -26,18 +25,23 @@ final class PHPec{
 		if(!$middleware) {
 			$this -> mObj[] = false;
 		}else{
-			$m = new $middleware();
-			if (!($m instanceof PHPec\Middleware)){
-				$this -> ctx -> logger -> error("middleware {$middleware} invalid ");
-				throw new \Exception("middleware {$middleware} invalid");
+			try{
+				$mFile = $this -> _getMidFile($middleware);
+				include $mFile;
+				$m = new $middleware();
+				if (!($m instanceof PHPec\Middleware)){
+					throw new Exception("middleware {$middleware} invalid");
+				}
+				$this -> mObj[]= $m;
+			}catch(throwable $e){
+				throw $e;
 			}
-			$this -> mObj[]= $m;
 		}
 		$this -> lastIdx ++;
 	}
-	//开始运行
+	//开始运行,
 	function run(){
-		$this -> mObj[] = new PHPec\Router();
+		$this -> use('PHPec\Router');
 		$this -> mGenerator = $this -> _generator();
 		$this -> _next();
 	}
@@ -55,6 +59,16 @@ final class PHPec{
 		foreach($this -> mObj as $m){
 			yield $m;
 		}
+	}
+	//加载中间件文件
+	private function _getMidFile($middleware){
+		if(strpos($middleware, 'PHPec\\') === 0){ //内置中间件
+        	$classFile = substr($middleware,6);
+        	$path = __DIR__.'/middleware/';
+    	}else{
+        	$path = APP_PATH.'/middleware/';
+    	}
+    	return $path.strtolower(preg_replace( '/([a-z0-9])([A-Z])/', "$1_$2", isset($classFile) ? $classFile : $middleware )).".php";
 	}
 }
 ?>
