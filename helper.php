@@ -13,29 +13,21 @@ defined('LOG_PATH')  || define('LOG_PATH',APP_PATH.'/logs');
 defined('LOG_LEVEL') || define('LOG_LEVEL', 15);
 
 /**
- * 类自动加载(类名格式为CamelCase,文件名格式为snake_case,即UserAdd => user_add.php)
+ * 控制器基类
  */
-spl_autoload_register(function ($class) {
-    if(strpos($class, 'PHPec\\') === 0){ //内置中间件
-        $classFile = substr($class,6);
-        $searchPath = array(__DIR__.'/middleware/' );
-    }else{
-        $searchPath = array(
-        	APP_PATH.'/middleware/',
-        	APP_PATH.'/controller',
-        );
-    }
-    $file = strtolower(preg_replace( '/([a-z0-9])([A-Z])/', "$1_$2", isset($classFile) ? $classFile : $class )).".php";
-    foreach($searchPath as $d){
-    	$fullPath = $d.$file;
-    	if(file_exists($fullPath)){
-    		include $fullPath;
-            if(!class_exists($class)) throw new \Exception("Class {$class} Not found");
-    	}
-    }
-    //todo: 找不到文件
-});
-
+class BaseControl {
+	function __construct($ctx){
+		$this->ctx = $ctx;
+		if(method_exists($this, '_before')){
+			$this -> _before();
+		}
+	}
+	function __destruct(){
+		if(method_exists($this, '_after')){
+			$this -> _after();
+		}
+	}
+}
 
 /**
  * Log处理对象，接受一个PHPec\LogWriter作为参数
