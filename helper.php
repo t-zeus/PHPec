@@ -9,10 +9,8 @@ const L_TYPE = array(
     'error' => 1<<3,
 );
 
-defined('APP_PATH')  || define('APP_PATH',dirname($_SERVER['SCRIPT_NAME']));
 defined('LOG_PATH')  || define('LOG_PATH',APP_PATH.'/logs');
-defined('LOG_LEVEL') || define('LOG_LEVEL', L_ERROR);
-
+defined('LOG_LEVEL') || define('LOG_LEVEL', 15);
 
 /**
  * 类自动加载(类名格式为CamelCase,文件名格式为snake_case,即UserAdd => user_add.php)
@@ -27,7 +25,7 @@ spl_autoload_register(function ($class) {
         	APP_PATH.'/controller',
         );
     }
-    $file = strtolower(preg_replace( '/([a-z0-9])([A-Z])/', "$1_$2", $classFile ? $classFile : $class )).".php";
+    $file = strtolower(preg_replace( '/([a-z0-9])([A-Z])/', "$1_$2", isset($classFile) ? $classFile : $class )).".php";
     foreach($searchPath as $d){
     	$fullPath = $d.$file;
     	if(file_exists($fullPath)){

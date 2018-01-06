@@ -2,6 +2,8 @@
 //PHPec框架核心类,负责中间件加载和调度
 include __DIR__.'/interface.php';
 include __DIR__.'/helper.php';
+include __DIR__.'/base_control.php';
+defined('APP_PATH')  || define('APP_PATH',dirname($_SERVER['SCRIPT_FILENAME']));
 
 final class PHPec{
 	private $mObj = array();
