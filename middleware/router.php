@@ -47,8 +47,6 @@ class Router implements Middleware {
         }
         //转回文件名格式
         $resFile = APP_PATH.'/controller/'.strtolower(preg_replace( '/([a-z0-9])([A-Z])/', "$1_$2", $resource)).".php";
-        echo $resFile;
-        echo $resource;
         if(file_exists($resFile)) include $resFile;
         else{
         	$resFile = APP_PATH.'/controller/any.php';
