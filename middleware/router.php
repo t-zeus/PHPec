@@ -41,9 +41,9 @@ class Router implements Middleware {
         		}
         	}
         }
-        $ctx -> logger -> debug(sprintf('router result, type=%s, target=%s->%s',ROUTER_TYPE, $resource,$actoin));
+        $ctx -> logger -> debug(sprintf('router result, type=%s, target=%s->%s',ROUTER_TYPE, $resource,$action));
         if(!$resource){
-        	return $this -> _notfound('Resource not found',$ctx);
+        	return $this -> _notFound('Resource not found',$ctx);
         }
         //转回文件名格式
         $resFile = APP_PATH.'/controller/'.strtolower(preg_replace( '/([a-z0-9])([A-Z])/', "$1_$2", $resource)).".php";
@@ -55,20 +55,21 @@ class Router implements Middleware {
         		$resource = "Any";
         	}
         }
+        if(defined('NS_CONTROL') && NS_CONTROL) $resource = NS_CONTROL."\\".$resource;
         if(!class_exists($resource)){
-        	return $this-> _notfound('Resource class not found --'.$resource,$ctx);
+        	return $this-> _notFound('Resource class not found --'.$resource, $ctx);
         }
         $res = new $resource($ctx);
         if( method_exists($res, $action)){
-        	$res->$action();
+        	$res->$action($ctx);
         }else if( method_exists($res, '_any')){
-        	$res->_any();
+        	$res->_any($ctx);
         }else{
-        	return $this-> _notfound('action not found',$ctx);
+        	return $this-> _notFound('action not found',$ctx);
        	}
 	}
 
-	function _notfound($msg,&$ctx){
+	function _notFound($msg,$ctx){
 		$ctx -> logger -> info($msg);
 		//todo: 定制返回
 		echo $msg;

@@ -26,8 +26,7 @@ final class PHPec{
 			$this -> mObj[] = false;
 		}else{
 			try{
-				$mFile = $this -> _getMidFile($middleware);
-				include $mFile;
+				$middleware = $this -> _loadMidFile($middleware);
 				$m = new $middleware();
 				if (!($m instanceof PHPec\Middleware)){
 					throw new Exception("middleware {$middleware} invalid");
@@ -61,14 +60,19 @@ final class PHPec{
 		}
 	}
 	//加载中间件文件
-	private function _getMidFile($middleware){
+	private function _loadMidFile($middleware){
+		$classFile = $middleware;
 		if(strpos($middleware, 'PHPec\\') === 0){ //内置中间件
         	$classFile = substr($middleware,6);
         	$path = __DIR__.'/middleware/';
     	}else{
         	$path = APP_PATH.'/middleware/';
+        	if(defined('NS_MIDDLE') && NS_MIDDLE){
+        		$middleware = NS_MIDDLE."\\".$middleware;
+        	}
     	}
-    	return $path.strtolower(preg_replace( '/([a-z0-9])([A-Z])/', "$1_$2", isset($classFile) ? $classFile : $middleware )).".php";
+    	include $path.strtolower(preg_replace( '/([a-z0-9])([A-Z])/', "$1_$2",  $classFile)).".php";
+    	return $middleware;
 	}
 }
 ?>
