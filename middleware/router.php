@@ -9,7 +9,9 @@ const R_TYPE = array(
 );
 
 if(defined('ROUTER_TYPE')){
-	//todo: ROUTER_TYPE 不合法
+	if(false === array_search(ROUTER_TYPE,R_TYPE)){
+		trigger_error("ROUTER_TYPE error",E_USER_ERROR);
+	}
 }else{
 	define('ROUTER_TYPE',1);	
 }
