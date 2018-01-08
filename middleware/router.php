@@ -2,37 +2,20 @@
 //路由中间件
 namespace PHPec;
 
-const R_TYPE = array(
-	'query_string' => 1,
-	'path_info'	   => 2,
-	'RESTful'	   => 3
-);
-
-if(defined('ROUTER_TYPE')){
-	if(false === array_search(ROUTER_TYPE,R_TYPE)){
-		trigger_error("ROUTER_TYPE error",E_USER_ERROR);
-	}
-}else{
-	define('ROUTER_TYPE',1);	
-}
-
 class Router implements Middleware {
 	function begin($ctx){
-        $reqMethod = $_SERVER['REQUEST_METHOD'];
-        $pathInfo  = $_SERVER['PATH_INFO'];
-        $qStr      = $_SERVER['QUERY_STRING'];
-        $ctx -> logger -> debug(sprintf("reqMethod=%s,path=%s,qStr=%s",$reqMethod,$pathInfo,$qStr));
+        $ctx -> logger -> debug(sprintf("reqMethod=%s,path=%s,qStr=%s",REQUEST_METHOD,PATH_INFO,QUERY_STRING));
         if(ROUTER_TYPE == R_TYPE['query_string']){ 
-        	parse_str($qStr, $qs);
+        	parse_str(QUERY_STRING, $qs);
         	$resource = isset($qs['c']) ? ucfirst(strtolower($qs['c'])) : '';
         	$action   = isset($qs['a']) ? strtolower($qs['a']) : '_any';
         }else{
-        	$path = explode("/",$pathInfo);
+        	$path = explode("/",PATH_INFO);
         	array_shift($path);
         	$resource = isset($path[0]) ? ucfirst(strtolower($path[0])) : '';
         	$action   = isset($path[1]) ? strtolower($path[1]) : '_any';
         	if(ROUTER_TYPE == R_TYPE['RESTful']){
-        		$action = strtolower($reqMethod);
+        		$action = strtolower(REQUEST_METHOD);
         		$ctx -> resId = array();
         		if($resource && isset($path[1])) $ctx->resId[strtolower($path[0])] = $path[1];
         		if(isset($path[2])) {
@@ -49,13 +32,16 @@ class Router implements Middleware {
         }
         //转回文件名格式
         $resFile = APP_PATH.'/controller/'.strtolower(preg_replace( '/([a-z0-9])([A-Z])/', "$1_$2", $resource)).".php";
+
         if(file_exists($resFile)) include $resFile;
         else{
         	$resFile = APP_PATH.'/controller/any.php';
         	if(file_exists($resFile)){
         		include $resFile;
         		$resource = "Any";
-        	}
+        	}else{
+                return $this -> _notFound("Resource file not found",$ctx);
+            }
         }
         if(defined('NS_CONTROL') && NS_CONTROL) $resource = NS_CONTROL."\\".$resource;
         if(!class_exists($resource)){
@@ -73,8 +59,8 @@ class Router implements Middleware {
 
 	function _notFound($msg,$ctx){
 		$ctx -> logger -> info($msg);
-		//todo: 定制返回
-		echo $msg;
+		$ctx -> status = 404;
+        $ctx -> body = $msg;
 	}
 	function end($ctx){
 		//do nothing
