@@ -26,12 +26,22 @@ final class PHPec{
 		if(!$middleware) {
 			$this -> middleware[] = false;
 		}else{
-			$middleware = $this -> _loadMidFile($middleware);
-			$m = new $middleware();
-			if (!($m instanceof \PHPec\Middleware)){
-				trigger_error("middleware {$middleware} invalid",E_USER_ERROR);
+			if($middleware instanceof Closure){
+				$this -> middleware[] = $middleware;
+			} else {
+				$middleware = $this -> _loadMidFile($middleware);
+				if(function_exists($middleware)){
+					$this -> middleware[] = $middleware;
+				}elseif(class_exists($middleware)){
+					$m = new $middleware();
+					if (!($m instanceof \PHPec\Middleware)){
+						trigger_error("middleware {$middleware} invalid",E_USER_ERROR);
+					}
+					$this -> middleware[]= $m;
+				}else{
+					trigger_error("middleware class or function not found",E_USER_ERROR);
+				}
 			}
-			$this -> middleware[]= $m;
 		}
 	}
 	//开始运行
@@ -45,9 +55,13 @@ final class PHPec{
 		$m = $this -> mGenerator -> current();
 		if(!$m) return;
 		$this -> mGenerator -> next();
-		$m -> begin($this);
-		$this -> next();
-		$m -> end($this);
+		if($m instanceof \PHPec\Middleware){
+			$m -> begin($this);
+			$this -> next();
+			$m -> end($this);
+		}else{
+			$m($this);
+		}
 	}
 	//返回下一个中间件对象
 	private function _generator(){
