@@ -188,6 +188,7 @@ class User extends Base{
 ```
 
 3. logger类
+
 PHPec内置了一个logger类，并绑定在$ctx -> logger中，该类提供几个输出日志的方法：
 
 ```
