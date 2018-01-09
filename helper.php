@@ -30,10 +30,9 @@ if(defined('ROUTER_TYPE')){
 }
 
 //路由用到的变量，先取出来，防止有中间件更改
-define('REQUEST_METHOD', $_SERVER['REQUEST_METHOD']);
-define('PATH_INFO',      $_SERVER['PATH_INFO']);
-define('QUERY_STRING',   $_SERVER['QUERY_STRING']);
-
+define('REQUEST_METHOD', @$_SERVER['REQUEST_METHOD']);
+define('PATH_INFO',      @$_SERVER['PATH_INFO']);
+define('QUERY_STRING',   @$_SERVER['QUERY_STRING']);
 //hander E_USER_ERROR
 set_error_handler(function($errno, $errstr, $errfile, $errline){
     if($errno == E_USER_ERROR){
