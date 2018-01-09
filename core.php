@@ -94,7 +94,7 @@ final class PHPec{
 	private function _loadMidFile($middleware){
 		$classFile = $middleware;
 		if(strpos($middleware, '\\PHPec\\') === 0){ //内置中间件
-			$classFile = substr($middleware,6);
+			$classFile = substr($middleware,7);
 			$path = __DIR__.'/middleware/';
 		}else{
 			$path = APP_PATH.'/middleware/';
