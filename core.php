@@ -1,5 +1,9 @@
 <?php
-//PHPec框架核心类,负责中间件加载和调度
+/**
+ * @desc: PHPec框架核心类,负责中间件加载和调度
+ * @github: https://github.com/tim1020/PHPec
+ * @Author: Tim<tim8670@gmail.com>
+ */
 require __DIR__.'/interface.php';
 require __DIR__.'/helper.php';
 
