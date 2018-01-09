@@ -7,22 +7,23 @@ class Router implements Middleware {
         $ctx -> logger -> debug(sprintf("reqMethod=%s,path=%s,qStr=%s",REQUEST_METHOD,PATH_INFO,QUERY_STRING));
         if(ROUTER_TYPE == R_TYPE['query_string']){ 
         	parse_str(QUERY_STRING, $qs);
-        	$resource = isset($qs['c']) ? ucfirst(strtolower($qs['c'])) : '';
-        	$action   = isset($qs['a']) ? strtolower($qs['a']) : '_any';
+        	$resource = isset($qs['c']) ? $qs['c'] : 'Any';
+        	$action   = isset($qs['a']) ? $qs['a'] : '_any';
         }else{
+		if(PATH_INFO == NULL) trigger_error('PATH_INFO invalid',E_USER_ERROR);
         	$path = explode("/",PATH_INFO);
         	array_shift($path);
-        	$resource = isset($path[0]) ? ucfirst(strtolower($path[0])) : '';
-        	$action   = isset($path[1]) ? strtolower($path[1]) : '_any';
+        	$resource = isset($path[0]) ? $path[0] : 'Any';
+        	$action   = isset($path[1]) ? $path[1] : '_any';
         	if(ROUTER_TYPE == R_TYPE['RESTful']){
         		$action = strtolower(REQUEST_METHOD);
         		$ctx -> resId = array();
-        		if($resource && isset($path[1])) $ctx->resId[strtolower($path[0])] = $path[1];
+        		if($resource && isset($path[1])) $ctx->resId[$path[0]] = $path[1];
         		if(isset($path[2])) {
-        			$resource.= ucfirst(strtolower($path[2]));
+        			$resource.= $path[2];
         		}
         		if(isset($path[3])){
-        			$ctx -> resId[strtolower($path[2])] = $path[3];
+        			$ctx -> resId[$path[2]] = $path[3];
         		}
         	}
         }
