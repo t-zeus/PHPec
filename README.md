@@ -113,14 +113,16 @@ function M1($ctx){
 框架使用PHPec对象本身作为$ctx，并使用魔术函数来设置和读取PHPec未定义属性，开发者可以在中间件中使用 $ctx -> xxx来设置或读取，如：
 
 $ctx -> status = 404         //设置http response code为404
+
 $ctx -> body = 'hello world' //设置response的body内容为hello world
 
 你还可以用$ctx来访问其它自定义的属性，或绑定一些方法。
 
 $ctx -> myVar = 'xxxx';
+
 $ctx -> myObj = new XX();
 
-**特别注意：** $tcx是全局生效的，意味着你在任一处设置$ctx后的值后，在其它地方也可以通过$ctx参数获取，所以，在对$ctx赋值时要注意（因为后面的赋值会覆盖前面的），特别是不能直接赋值给$ctx，比如 $ctx = 'xxx'，这会使应用发生不可预期的错误。
+**特别注意：** $tcx是全局生效的，意味着你在任一处设置$ctx的值后，在其它地方也可以通过$ctx参数获取，所以，在对$ctx赋值时要注意（因为后面的赋值会覆盖前面的），特别是不能直接赋值给$ctx，比如 $ctx = 'xxx'，这会使应用发生不可预期的错误。
 
 ### 内置组件
 
@@ -147,12 +149,12 @@ $app->run();
 ```
 
 内置路由中间件，支持三种路由方式（大小写敏感）：
-	 
-	 + query_string（c=resource&a=action） 
 
-	 + path_info (/resource/action) 
+- query_string（c=resource&a=action） 
 
-	 + RESTful(Method /resource)  //请求方法作为acton，PATH支持两层资源定义，如：/shop/1/product/2
+- path_info (/resource/action) 
+
+- RESTful(Method /resource)  //请求方法作为acton，PATH支持两层资源定义，如：/shop/1/product/2
 
 > 如果需要使用path_info或RESTful,你可能需要配置一下nginx。
 
@@ -219,7 +221,7 @@ $app = new PHPec(new MyLogWriter());
 如果不想改变框架内置的logger行为，同样可以使用\PHPec\Logger自己创建一个logger对象
 
 ```
-$logger = new \PHPec\Logger(); //不传参表示使用内容writer，你可以指定自己的writer
+$logger = new \PHPec\Logger(); //不传参表示使用内置writer，你可以指定自己的writer
 ```
 
 ## Other
