@@ -3,20 +3,25 @@
 namespace PHPec;
 
 class Router implements Middleware {
-	function begin($ctx){
-        $ctx -> logger -> debug(sprintf("reqMethod=%s,path=%s,qStr=%s",REQUEST_METHOD,PATH_INFO,QUERY_STRING));
-        if(ROUTER_TYPE == R_TYPE['query_string']){ 
-        	parse_str(QUERY_STRING, $qs);
+	function begin($ctx){ //$ctx->router= array(type=>,method=>,pathinfo=>,query=>)
+        $r = $ctx -> router;
+        if(empty($r) || empty($r['type']) || empty($r['method'])){
+            trigger_error("router param miss",E_USER_ERROR);
+        }
+        //todo: check type,method
+        $ctx -> logger -> debug(sprintf("reqMethod=%s,path=%s,qStr=%s",$r['method'],$r['pathinfo'],$r['query']));
+        if($r['type'] == R_TYPE['query_string']){
+        	parse_str($r['query'], $qs);
         	$resource = isset($qs['c']) ? $qs['c'] : 'Any';
         	$action   = isset($qs['a']) ? $qs['a'] : '_any';
         }else{
-		if(PATH_INFO == NULL) trigger_error('PATH_INFO invalid',E_USER_ERROR);
-        	$path = explode("/",PATH_INFO);
+            if($r['pathinfo']==null) trigger_error("PATH_INFO invalid",E_USER_ERROR);
+        	$path = explode("/",$r['pathinfo']);
         	array_shift($path);
         	$resource = isset($path[0]) ? $path[0] : 'Any';
         	$action   = isset($path[1]) ? $path[1] : '_any';
-        	if(ROUTER_TYPE == R_TYPE['RESTful']){
-        		$action = strtolower(REQUEST_METHOD);
+        	if($r['type'] == R_TYPE['RESTful']){
+        		$action = strtolower($r['method']);
         		$ctx -> resId = array();
         		if($resource && isset($path[1])) $ctx->resId[$path[0]] = $path[1];
         		if(isset($path[2])) {
@@ -27,18 +32,18 @@ class Router implements Middleware {
         		}
         	}
         }
-        $ctx -> logger -> debug(sprintf('router result, type=%s, target=%s->%s',ROUTER_TYPE, $resource,$action));
+        $ctx -> logger -> debug(sprintf('router result, type=%s, target=%s->%s',$r['type'], $resource,$action));
         if(!$resource){
         	return $this -> _notFound('Resource not found',$ctx);
         }
         //转回文件名格式
         $resFile = APP_PATH.'/controller/'.strtolower(preg_replace( '/([a-z0-9])([A-Z])/', "$1_$2", $resource)).".php";
 
-        if(file_exists($resFile)) include $resFile;
+        if(file_exists($resFile)) include_once $resFile;
         else{
         	$resFile = APP_PATH.'/controller/any.php';
         	if(file_exists($resFile)){
-        		include $resFile;
+        		include_once $resFile;
         		$resource = "Any";
         	}else{
                 return $this -> _notFound("Resource file not found",$ctx);
