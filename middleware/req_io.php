@@ -3,6 +3,12 @@ namespace PHPec;
 class ReqIo implements Middleware{
 	//处理输入
 	function begin($ctx){
+		$ctx -> router = [
+			'type' 		=> ROUTER_TYPE,
+			'method'	=> isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] :'get',
+			'pathinfo'	=> isset($_SERVER['PATH_INFO']) ? $_SERVER['PATH_INFO'] : '/',
+			'query'		=> isset($_SERVER['QUERY_STRING']) ? $_SERVER['QUERY_STRING'] : '',
+		];
 		//$ctx -> headers = [];
 		//$ctx -> req;
 		//$ctx -> cookies = [];
@@ -10,7 +16,7 @@ class ReqIo implements Middleware{
 	}
 	//输出响应
 	function end($ctx){
-		header("X-Powered-By: PHPec @php-".PHP_VERSION);
+		@header("X-Powered-By: PHPec @php-".PHP_VERSION);
 		$code = [
 			100 => "HTTP/1.1 100 Continue",
 			101 => "HTTP/1.1 101 Switching Protocols",
@@ -66,7 +72,7 @@ class ReqIo implements Middleware{
 	 		}else{
 				$ctx -> body =  $code[$ctx -> status];
 			}
-			header("Content-Type: {$contentType}");
+			@header("Content-Type: {$contentType}");
 			if(!empty($ctx -> resHeaders)){
 				foreach($ctx -> resHeaders as $header){
 					header($header);
