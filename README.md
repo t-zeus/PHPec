@@ -13,9 +13,10 @@ PHPec，即php easy, 这是多年前写过的一个MVC框架的名字。为了�
 
 这是一个用php实现的模仿nodejs的koa经典的“洋葱模型”的WEB开发框架。
 
-下面是其执行流程示意图（图片来自网络）
+下面是其执行流程示意图
 
 ![flow](https://raw.githubusercontent.com/tim1020/PHPec/master/img/flow.png)
+
 
 ## 建议项目目录结构
 
@@ -25,16 +26,17 @@ index.php   //项目入口
 middleware/ //中间件目录
 controller/ //控制器目录
 logs/       //日志目录
-libs/       //第三方库，包括PHPec
+vendor/     //第三方库，包括PHPec
 ```
 
-## 使用方法
+## 基本用法
 
-### 入口
 
 ```
+//main index.php
+
 require __DIR__.'/config.php';
-require __DIR__.'/libs/PHPec/core.php';
+require __DIR__.'/vendor/PHPec/core.php';
 
 $app = new PHPec();
 //加载中间件
@@ -49,6 +51,9 @@ $app->use('m3')
 
 $app->run();
 ```
+
+使用方法可参考example目录下的例子
+
 
 ### 中间件
 
