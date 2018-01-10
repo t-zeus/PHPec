@@ -8,6 +8,9 @@ class Any extends \PHPec\BaseControl {
         $ctx -> body.="[after]";
     }
     function show($ctx){
-	$ctx -> body.="Any->show";
+		$ctx -> body.="Any->show";
+    }
+    function get($ctx){
+		$ctx -> body.="Any->get";
     }
 } 

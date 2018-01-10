@@ -16,7 +16,7 @@ $app -> use(function($ctx){
     $ctx -> next();// pass to next middleware,if not ,skip all fllow middleware include \PHPec\Router 
     $ctx -> text .= ' [end]';
     if(!$ctx -> body){
-	$ctx -> body = $ctx -> text;
+		$ctx -> body = $ctx -> text;
     }
 });
 

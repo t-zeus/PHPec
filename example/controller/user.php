@@ -1,9 +1,12 @@
 <?php
 class User{
     function profile($ctx){
-	$ctx -> body = "User->profile";
+		$ctx -> body = "User->profile";
     }
     function _any($ctx){
-	$ctx -> body = "User->_any";
+		$ctx -> body = "User->_any";
+    }
+    function post($ctx){
+    	$ctx->body = "User->post";
     }
 }
