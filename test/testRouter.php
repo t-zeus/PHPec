@@ -49,10 +49,60 @@ class RouterTest extends TestCase{
 		$this -> router -> begin($app);
 	}
 	/**
+
+	 *@depends testNew
+	 *@expectedException  Exception
+	 *@expectedExceptionMessage request method of options deny 
+	 */
+	function testNotSupportMethod($app){
+		setRouter($app,array(1,'options','/User/shw','c=User&a=profile'));
+		$app -> allowedMethod = ['post','get']; //coverage fllow case
+		$this -> router -> begin($app);
+	}
+	/**
+	 *@depends testNew
+	 */
+	function testClassInvalid($app){
+		setRouter($app,array(2,'post','/ClassInvalid/aa',''));
+		$this -> router -> begin($app);
+		$this -> assertEquals('Resource class not found --ClassInvalid',$app->body);
+		$this -> assertEquals(404,$app->status);
+	}
+	/**
+	 *@depends testNew
+	 */
+	function testActionNotFound($app){
+		setRouter($app,array(2,'post','/ShopProduct/aa',''));
+		$this -> router -> begin($app);
+		$this -> assertEquals('action not found',$app->body);
+		$this -> assertEquals(404,$app->status);
+	}
+
+
+	//type=1 for querystring	
+
+	/**
 	 *@depends testNew
 	 */
 	function testQuery($app){
 		setRouter($app,array(1,'get','/User/shw','c=User&a=profile'));
+		$this -> router -> begin($app);
+		$this -> assertEquals('User->profile',$app->body);
+	}
+	/**
+	 *@depends testNew
+	 */
+	function testQueryEmpty($app){
+		setRouter($app,array(1,'get','/User/shw',''));
+		$this -> router -> begin($app);
+		$this -> assertEquals('[before]Any->_any[after]',$app->body);
+	}
+	/**
+	/**
+	 *@depends testNew
+	 */
+	function testQueryPost($app){
+		setRouter($app,array(1,'post','/User/shw','c=User&a=profile'));
 		$this -> router -> begin($app);
 		$this -> assertEquals('User->profile',$app->body);
 	}
@@ -78,18 +128,18 @@ class RouterTest extends TestCase{
 	function testQueryAnyResourceAnyAction($app){
 		setRouter($app,array(1,'get','/User/shw','c=None&a=none'));
 		$this -> router -> begin($app);
-		$this -> assertEquals('action not found[after]',$app->body);
-		$this -> assertEquals(404,$app->status);
+		$this -> assertEquals('[before]Any->_any[after]',$app->body);
 	}
-
+	
+	//type=2 for pathinfo
 
 	/**
 	 *@depends testNew
 	 */
-	function testPath($app){
-		setRouter($app,array(2,'get','/User/profile',''));
+	function testPathEmpty($app){
+		setRouter($app,array(2,'get','/',''));
 		$this -> router -> begin($app);
-		$this -> assertEquals('User->profile',$app->body);
+		$this -> assertEquals('[before]Any->_any[after]',$app->body);
 	}
 	/**
 	 *@depends testNew
@@ -98,6 +148,13 @@ class RouterTest extends TestCase{
 	 */
 	function testPathNull($app){
 		setRouter($app,array(2,'get',null,''));
+		$this -> router -> begin($app);
+	}
+	/**
+	 *@depends testNew
+	 */
+	function testPath($app){
+		setRouter($app,array(2,'get','/User/profile',''));
 		$this -> router -> begin($app);
 		$this -> assertEquals('User->profile',$app->body);
 	}
@@ -123,10 +180,10 @@ class RouterTest extends TestCase{
 	function testPathAnyResourceAnyAction($app){
 		setRouter($app,array(2,'get','/Shop/shw',''));
 		$this -> router -> begin($app);
-		$this -> assertEquals('action not found[after]',$app->body);
-		$this -> assertEquals(404,$app->status);
+		$this -> assertEquals('[before]Any->_any[after]',$app->body);
 	}
 
+	//type=3 for RESTful
 
 	/**
 	 *@depends testNew
@@ -138,14 +195,31 @@ class RouterTest extends TestCase{
 	}
 	/**
 	 *@depends testNew
-	 *@expectedException  Exception
-	 *@expectedExceptionMessage PATH_INFO invalid
 	 */
 	function testRestPost($app){
 		setRouter($app,array(3,'post','/User/aa',''));
 		$this -> router -> begin($app);
 		$this -> assertEquals('User->post',$app->body);
 	}
+	/**
+	 *@depends testNew
+	 */
+	function testRestAndId($app){
+		setRouter($app,array(3,'post','/User/123',''));
+		$this -> router -> begin($app);
+		$this -> assertEquals('User->post',$app->body);
+		$this -> assertEquals(['User'=>123],$app->resId);
+	}
+	/**
+	 *@depends testNew
+	 */
+	function testRestNestAndId($app){
+		setRouter($app,array(3,'post','/Shop/123/Product/345',''));
+		$this -> router -> begin($app);
+		$this -> assertEquals('/Shop/Product->post',$app->body);
+		$this -> assertEquals(['Shop'=>123,'Product'=>345],$app->resId);
+	}
+	/**
 	/**
 	 *@depends testNew
 	 */
@@ -157,20 +231,10 @@ class RouterTest extends TestCase{
 	/**
 	 *@depends testNew
 	 */
-	function testPathAnyResourceNotAction($app){
+	function testRestAnyResourceAnyAction($app){
 		setRouter($app,array(3,'post','/Show/show',''));
 		$this -> router -> begin($app);
-		$this -> assertEquals('action not found[after]',$app->body);
-	}
-
-	/**
-	 *@depends testNew
-	 */
-	function testRestClassInvalid($app){
-		setRouter($app,array(3,'post','/Invalid/aa',''));
-		$this -> router -> begin($app);
-		$this -> assertEquals('Resource class not found --Invalid',$app->body);
-		$this -> assertEquals(404,$app->status);
+		$this -> assertEquals('[before]Any->_any[after]',$app->body);
 	}
 }
 ?>
