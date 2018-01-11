@@ -12,6 +12,7 @@ final class PHPec{
 	private $mGenerator;
 	private $ctx = [
 		'status' => 200,
+		'allowedMethod' => ['get','post','delete','put','options','head'],
 		'body'   => NULL
 	];
 	function __construct(\PHPec\LogWriter $writer = NULL){
