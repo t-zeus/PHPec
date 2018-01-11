@@ -7,7 +7,7 @@ PHPec，即php easy, 这是多年前写过的一个MVC框架的名字。为了�
 
 **require**: PHP5.5+ || PHP7
 
-> 本项目使用master分支作为开发分支，以release分支释出阶段可用版本。
+> 本项目使用dev分支作为开发分支，阶段可用版本在master分支，并以版本号打tag。
 
 ## 特性说明
 
