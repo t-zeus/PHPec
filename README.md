@@ -228,6 +228,7 @@ class User extends Base{
 ```
 
 内置Router使用$ctx -> router中的参数(来自server参数)进行路由dispatch，也即时开发者有能力在路由之前修改以改变路由行为，以下是一个简单的路由别名处理例子。
+
 ```
 //如果不作处理，默认 type=1，访问 /?c=User&a=Profile时会路由到 User -> profile方法
 //更好面增加一个中间件改变这种行为，修改后，访问/?c=User&a=Profile会被重定向为/Shop/list
@@ -244,7 +245,7 @@ $app -> use(function($ctx){
 });
 
 $app -> run();
-
+```
 
 3. logger类
 
