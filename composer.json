@@ -1,5 +1,5 @@
 {
-    "name":"tim1020/PHPec",
+    "name":"tim1020/phpec",
     "description":"A simple 、easy and lightweight php web framework",
     "type":"library",
     "keywords":["web","framework","mvc","middleware","router"],
