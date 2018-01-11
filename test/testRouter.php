@@ -98,7 +98,6 @@ class RouterTest extends TestCase{
 		$this -> assertEquals('[before]Any->_any[after]',$app->body);
 	}
 	/**
-	/**
 	 *@depends testNew
 	 */
 	function testQueryPost($app){
@@ -219,7 +218,6 @@ class RouterTest extends TestCase{
 		$this -> assertEquals('/Shop/Product->post',$app->body);
 		$this -> assertEquals(['Shop'=>123,'Product'=>345],$app->resId);
 	}
-	/**
 	/**
 	 *@depends testNew
 	 */
