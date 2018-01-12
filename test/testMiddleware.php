@@ -2,6 +2,18 @@
 use PHPUnit\Framework\TestCase;
 define('APP_PATH',__DIR__.'/../example');
 include '../core.php';
+
+//for app->use
+class MyM3 implements \PHPec\Middleware{
+	function begin($ctx){
+		$ctx -> my.= 'hello ';
+	}
+	function end($ctx){
+		$ctx -> my .= 'world';
+
+	}
+}
+
 class MiddlewareTest extends TestCase{
 
 	function testNew(){
@@ -28,20 +40,39 @@ class MiddlewareTest extends TestCase{
 	/**
 	 *@depends testNew
 	 *@expectedException  Exception
-	 *@expectedExceptionMessage middleware class or function not found
+	 *@expectedExceptionMessage middleware invalid: type error
+
 	 */
-	function testdMiddlewareClassNotFound($app){
-		$app -> use('ClassNotFound');
+	function testMiddlewareInvalidType($app){
+		$app -> use([['m1']]);
 	}
 	/**
 	 *@depends testNew
 	 *@expectedException  Exception
-	 *@expectedExceptionMessage middleware ClassInvalid invalid
+	 *@expectedExceptionMessage middleware invalid: class or function not found
+	 */
+
+	function testdMiddlewareClassNotFound($app){
+		$app -> use('ClassNotFound');
+
+	}
+	/**
+	 *@depends testNew
+	 *@expectedException  Exception
+	 *@expectedExceptionMessage middleware invalid: ClassInvalid not implements \PHPec\Middleware
 	 */
 	function testMiddlewareClassInvalid($app){
 		$app -> use('ClassInvalid');
 	}
-		/**
+	/**
+	 *@depends testNew
+	 *@expectedException  Exception
+	 *@expectedExceptionMessage middleware invalid:stdClass not implement \PHPec\Middleware 
+	 */
+	function testMiddlewareClassInvalid2($app){
+		$app -> use(new stdClass);
+	}
+	/**
 	 *@depends testNew
 	 */
 	function testAddMiddleware($app){
@@ -53,18 +84,21 @@ class MiddlewareTest extends TestCase{
 				$ctx->body=$ctx->text;
 			}
 		});
-		$app -> use('M1');
-		$app -> use('M2');
+		$app -> use(new MyM3());
+		$app -> use(['M1','M2']);
 		$app -> use();//skip Router
+
 		$app -> use('M1'); //donot exec
 		$app -> run();
 		$this -> assertEquals(1,$app->router['type']);
 		$this -> assertEquals('get',$app->router['method']);
 		$this -> assertEquals('/',$app->router['pathinfo']);
 		$this -> assertEquals('',$app->router['query']);
+		$this -> assertEquals('hello world',$app->my); //form MyM3
 		$this -> assertEquals('[begin]>m1>m2>m2 end>m1 end[end]',$app->text);
 		$this -> assertEquals('[begin]>m1>m2>m2 end>m1 end[end]',$app->body);
 		$this -> expectOutputString('[begin]>m1>m2>m2 end>m1 end[end]');
 	}
 }
+
 ?>
