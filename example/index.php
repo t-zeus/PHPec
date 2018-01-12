@@ -9,6 +9,18 @@ set_exception_handler(function($err){
 });
 
 $app = new PHPec();
+//use middleware,you can use them one by one,or once by a array
+/**
+$app -> use([
+	function($ctx){
+		//do
+		$ctx -> next();
+		//do
+	},
+	'M1',
+	'M2'
+]);
+*/
 
 //Use Closure ;
 $app -> use(function($ctx){
@@ -19,6 +31,10 @@ $app -> use(function($ctx){
 		$ctx -> body = $ctx -> text;
     }
 });
+
+//you can use a Object instance which implements \PHPec\Middleware
+//so,you can use a Middleware with composer manage.
+//$app -> use(new MyMiddleware()); //MyMiddleware must implements \PHPec\Middleware, 
 
 //Use a function in file (search in "middleware" dir)
 //function name as middleware name, filename is camel_case.php and then function name is CamelCase
@@ -35,6 +51,7 @@ $app -> use(function($ctx){
    $ctx -> text .= ' [after $app->use()] ';
    $ctx -> next();
 });
+
 
 //if not use  $app -> use() to skip, \PHPec\Router will call
 //i.e. 
