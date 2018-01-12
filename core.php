@@ -22,29 +22,34 @@ final class PHPec{
 	//添加中间件
 	private function _add($middleware = NULL){
 		if(!empty($this -> middleware )){
-			$last = $this -> middleware[count($this -> middleware)-1];
-			if($last === false){
+			if(false === $this -> middleware[count($this -> middleware)-1]){
 				return; //skip
 			}
 		}
 		if(!$middleware) {
 			$this -> middleware[] = false;
-		}else{
-			if($middleware instanceof Closure){
-				$this -> middleware[] = $middleware;
-			} else {
+		}else{	
+			if(is_object($middleware)){
+				if($middleware instanceof Closure || $middleware instanceof \PHPec\Middleware){
+					$this -> middleware[] = $middleware;
+				}else{
+					trigger_error('middleware invalid:'.get_class($middleware) .' not implement \PHPec\Middleware',E_USER_ERROR);
+				}
+			}elseif(is_string($middleware)){
 				$middleware = $this -> _loadMidFile($middleware);
 				if(function_exists($middleware)){
 					$this -> middleware[] = $middleware;
 				}elseif(class_exists($middleware)){
 					$m = new $middleware();
 					if (!($m instanceof \PHPec\Middleware)){
-						trigger_error("middleware {$middleware} invalid",E_USER_ERROR);
+						trigger_error("middleware invalid: $middleware not implements \\PHPec\\Middleware",E_USER_ERROR);
 					}
 					$this -> middleware[]= $m;
 				}else{
-					trigger_error("middleware class or function not found",E_USER_ERROR);
+					trigger_error("middleware invalid: class or function not found",E_USER_ERROR);
 				}
+			}else{
+				trigger_error("middleware invalid: type error",E_USER_ERROR);
 			}
 		}
 	}
