@@ -7,11 +7,6 @@ interface Middleware{
 	public function begin($ctx);
     public function end($ctx);
 }
-//hook controller
-interface Hook{
-	public function before($ctx);
-	public function after($ctx);
-}
 //LogWriter
 interface LogWriter{
 	public function write($msg,$type);
