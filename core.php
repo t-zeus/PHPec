@@ -24,8 +24,7 @@ final class PHPec{
 		if(!empty($this -> middleware )){
 			$last = $this -> middleware[count($this -> middleware)-1];
 			if($last === false){
-				$this -> logger -> warn("middleware {$middleware} ingored");
-				return;
+				return; //skip
 			}
 		}
 		if(!$middleware) {
@@ -78,7 +77,13 @@ final class PHPec{
 	function __call($method,$value){
 		if($method == 'use'){
 			$m = isset($value[0]) ? $value[0] : false;
-			$this -> _add($m);
+			if(is_array($m)){	
+				foreach($m as $v){
+					$this -> _add($v);	
+				}
+			}else{
+				$this -> _add($m);
+			}
 		}else{
 			trigger_error("call not defined method: PHPec -> {$method}",E_USER_ERROR);
 		}
