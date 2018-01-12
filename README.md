@@ -70,9 +70,9 @@ $app->use(function($ctx){
 	$ctx -> next();
 	//do something
 });
-$app->use('m2');
+$app->use(['M1','M2']);
 $app->use(); //传递空参数时，所有后面的中间件被忽略，包括内置的Router;
-$app->use('m3')
+$app->use('M3')
 
 $app->run();
 ```
@@ -80,7 +80,9 @@ $app->run();
 
 ### 中间件
 
-phpec目前支持三种方式使用中间件，包括闭包函数，独立函数，实现\PHPec\Middleware接口的类。
+phpec目前支持多种方式使用中间件，总有一款适合你。
+
+1. 闭包函数
 
 ```
 //使用Clouser时，直接在入口中使用
@@ -91,6 +93,9 @@ $app -> use(function($ctx){
 	//do something;
 });
 ```
+
+2. 独立文件
+ 文件可以函数或实现了\PHPec\Middleware接口的类，文件名与类名/函数名对应，并保存在middleware目录
 
 ```
 //使用实现\PHPec\Middleware接口的类，需实现begin($ctx)和end($ctx)方法
@@ -113,6 +118,46 @@ function M1($ctx){
 	$ctx->next();
 	//do other
 }
+```
+
+然后使用时用类名传入：
+```
+$app -> use('M1');
+$app -> use('M2');
+```
+
+3. 类实例
+
+类与独立文件类似，必须实现\PHPec\Middleware接口,但对文件名及保存位置没有要求，你甚至可以在一个文件中实现多个Middleware的类。
+
+> 利用此特性，你甚至可以加载由composer管理的中间件库
+
+```
+require 'vendor/my/middle/My.php';
+$app -> use(new MyMiddle()); //My.php中有Class MyMiddle implements \PHPec\Middleware
+```
+
+4. 通过函数返回
+即再定义一个函数，通过不同的参数返回不同的中间件，包括闭包，类实例等。
+```
+function myMiddle($p){
+	switch($p){
+		case 'A':
+		return function($ctx){
+			//
+		};
+		case 'B':
+		return 'M1';
+	}
+}
+$app -> use(myMiddle('A'));
+```
+
+5. 通过数组一次传入多个中间件
+```
+$app -> use(['M1','M2',function($ctx){},'M3']); 
+//数组方式要跳过后面的中间件时，可使用空字符串或者null
+$app -> use(['M1','M2',null);
 ```
 
 ### 命名空间
