@@ -95,7 +95,11 @@ final class PHPec{
 	}
 	//设置$ctx的值
 	function __set($k,$v){
-		$this -> ctx[$k]= $v;
+		if(stripos($k, '_')=== 0 && isset($this -> ctx[$k])){ 
+			trigger_error("\$ctx->{$k} cannot modify",E_USER_WARNING);
+		}else{
+			$this -> ctx[$k]= $v;
+		}
 	}
 	//读取$ctx的值
 	function __get($k){
