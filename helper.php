@@ -33,6 +33,9 @@ if(defined('ROUTER_TYPE')){
 set_error_handler(function($errno, $errstr, $errfile, $errline){
     if($errno == E_USER_ERROR){
         throw new \Exception($errstr, 1);
+    }elseif($errno == E_USER_WARNING){
+        echo "PHPec Warning: ".$errstr."\n\n";
+        //todo: log
     }
     return false;
 });
