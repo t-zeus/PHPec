@@ -3,8 +3,8 @@
 namespace PHPec;
 
 class Router implements Middleware {
-    function begin($ctx){ //$ctx->router= array(type=>,method=>,pathinfo=>,query=>)
-        $r = $ctx -> router;
+    function begin($ctx){ //$ctx->route_param= array(type=>,method=>,pathinfo=>,query=>)
+        $r = $ctx -> route_param;
         if(empty($r) || empty($r['type']) || empty($r['method'])){
             trigger_error("router param miss",E_USER_ERROR);
         }
@@ -37,9 +37,17 @@ class Router implements Middleware {
             }
         }
         $ctx -> logger -> debug(sprintf('router result, type=%s, target=%s->%s',$r['type'], $resource,$action));
-        if(!$resource){
-            return $this -> _notFound('Resource not found',$ctx);
+        //安全限制
+        if(preg_match('/^[A-Z]{1}[A-Za-z\d]*$/',$resource) === 0){
+            return $this -> _notFound('Resource name invalid',$ctx);
         }
+        if($action!='_any' && preg_match('/^[a-z]{1}[A-Za-z\d]*$/',$action) === 0){
+            return $this -> _notFound('action name invalid',$ctx);
+        }
+        //注入resource及action，在路由失败时由其它路由组件补充
+        $ctx -> resource = $resource;
+        $ctx -> action   = $action;
+
         //转回文件名格式
         $resFile = APP_PATH.'/controller/'.strtolower(preg_replace( '/([a-z0-9])([A-Z])/', "$1_$2", $resource)).".php";
 
