@@ -3,14 +3,14 @@ namespace PHPec;
 class ReqIo implements Middleware{
 	//处理输入
 	function begin($ctx){
-		$ctx -> router = [
+		$ctx -> route_param = [
 			'type' 		=> ROUTER_TYPE,
 			'method'	=> isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] :'get',
 			'pathinfo'	=> isset($_SERVER['PATH_INFO']) ? $_SERVER['PATH_INFO'] : '/',
 			'query'		=> isset($_SERVER['QUERY_STRING']) ? $_SERVER['QUERY_STRING'] : '',
 		];
 		//$ctx -> headers = [];
-		//$ctx -> req;
+		//$ctx -> req =;
 		//$ctx -> cookies = [];
 		//unset($_POST,$_GET,$_REQUEST,$_SERVER);
 	}
