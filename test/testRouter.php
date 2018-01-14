@@ -7,7 +7,7 @@ include_once('../core.php');
 include_once('../middleware/router.php');
 
 function setRouter($ctx,$r){
-	$ctx ->router = [
+	$ctx ->route_param = [
 		'type' 		=> $r[0],
 		'method' 	=> $r[1],
 		'pathinfo'	=> $r[2],
@@ -21,10 +21,10 @@ class RouterTest extends TestCase{
 		$app =  new PHPec();
 		$app -> use();//skip router;
 		$app -> run();
-		$this -> assertEquals(1,$app->router['type']);
-		$this -> assertEquals('get',$app->router['method']);
-		$this -> assertEquals('/',$app->router['pathinfo']);
-		$this -> assertEquals('',$app->router['query']);
+		$this -> assertEquals(1,$app->route_param['type']);
+		$this -> assertEquals('get',$app->route_param['method']);
+		$this -> assertEquals('/',$app->route_param['pathinfo']);
+		$this -> assertEquals('',$app->route_param['query']);
 		return $app;
 	}
 	function setUp(){
@@ -62,10 +62,28 @@ class RouterTest extends TestCase{
 	/**
 	 *@depends testNew
 	 */
-	function testClassInvalid($app){
-		setRouter($app,array(2,'post','/ClassInvalid/aa',''));
+	function testResourceNameInvalid($app){
+		setRouter($app,array(2,'post','/anvalid/Aa',''));
 		$this -> router -> begin($app);
-		$this -> assertEquals('Resource class not found --ClassInvalid',$app->body);
+		$this -> assertEquals('Resource name invalid',$app->body);
+		$this -> assertEquals(404,$app->status);
+	}
+	/**
+	 *@depends testNew
+	 */
+	function testClassInvalid($app){
+		setRouter($app,array(2,'post','/Invalid/aa',''));
+		$this -> router -> begin($app);
+		$this -> assertEquals('Resource class not found --Invalid',$app->body);
+		$this -> assertEquals(404,$app->status);
+	}
+	/**
+	 *@depends testNew
+	 */
+	function testActionNameInvalid($app){
+		setRouter($app,array(2,'post','/Invalid/Aa',''));
+		$this -> router -> begin($app);
+		$this -> assertEquals('action name invalid',$app->body);
 		$this -> assertEquals(404,$app->status);
 	}
 	/**

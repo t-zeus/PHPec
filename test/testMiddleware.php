@@ -90,10 +90,10 @@ class MiddlewareTest extends TestCase{
 
 		$app -> use('M1'); //donot exec
 		$app -> run();
-		$this -> assertEquals(1,$app->router['type']);
-		$this -> assertEquals('get',$app->router['method']);
-		$this -> assertEquals('/',$app->router['pathinfo']);
-		$this -> assertEquals('',$app->router['query']);
+		$this -> assertEquals(1,$app->route_param['type']);
+		$this -> assertEquals('get',$app->route_param['method']);
+		$this -> assertEquals('/',$app->route_param['pathinfo']);
+		$this -> assertEquals('',$app->route_param['query']);
 		$this -> assertEquals('hello world',$app->my); //form MyM3
 		$this -> assertEquals('[begin]>m1>m2>m2 end>m1 end[end]',$app->text);
 		$this -> assertEquals('[begin]>m1>m2>m2 end>m1 end[end]',$app->body);
