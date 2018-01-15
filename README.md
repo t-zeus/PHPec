@@ -3,7 +3,7 @@ PHPec开发框架  [![License](https://img.shields.io/badge/license-MIT-blue.svg
 
 一个极简的PHP WEB开发框架。
 
-PHPec，即php easy, 这是多年前写过的一个MVC框架的名字。为了纪念，故继续取该名字，目标是做出一个易用、易学、易扩展的轻量开发框架。
+PHPec，即php easy, 这是多年前写过的一个MVC框架的名字。为了纪念，故继续取该名字，目标是做出一个易用、易学、易扩展的轻量WEB开发框架。
 
 **require**: PHP5.5+ || PHP7
 
@@ -68,9 +68,9 @@ action同时是方法名，以小写字母开头，只能由字母和数字组�
 //main index.php
 
 require __DIR__.'/config.php';
-require __DIR__.'/vendor/PHPec/core.php';
+require __DIR__.'/vendor/autoload.php'; //composer autoload
 
-$app = new PHPec();
+$app = new \PHPec\App();
 //加载中间件
 $app->use(function($ctx){
 	//do something
@@ -93,7 +93,7 @@ phpec目前支持多种方式使用中间件，总有一款适合你。
 
 ```
 //使用Clouser时，直接在入口中使用
-$app = new PHPec();
+$app = new \PHPec\App();
 $app -> use(function($ctx){
 	//do something
 	$ctx -> next(); //函数方式需手动调起下一中间件,如果没有调用，则后面的中间件不会被执行。
@@ -102,7 +102,7 @@ $app -> use(function($ctx){
 ```
 
 2. 独立文件
- 文件可以函数或实现了\PHPec\Middleware接口的类，文件名与类名/函数名对应，并保存在middleware目录
+ 文件可以是函数或实现了\PHPec\Middleware接口的类，文件名与类名/函数名对应，并保存在middleware目录
 
 ```
 //使用实现\PHPec\Middleware接口的类，需实现begin($ctx)和end($ctx)方法
@@ -140,7 +140,7 @@ $app -> use('M2');
 > 利用此特性，你甚至可以加载由composer管理的中间件库
 
 ```
-require 'vendor/my/middle/My.php';
+require 'vendor/my/middle/My.php'; //或者使用composer的autoload
 $app -> use(new MyMiddle()); //My.php中有Class MyMiddle implements \PHPec\Middleware
 ```
 
@@ -212,9 +212,16 @@ $ctx -> ids = [];
 $ctx -> ids[0] = 1; // not ok
 $ctx -> obj = new stdClass;
 $ctx -> obj -> id = 12; //ok
-...
+
 ```
 
+5. $ctx -> req
+
+PHPec默认地将请求相关的内容绑定在$ctx -> req对象，包括 get,post,cookie,header，比如，可以用$ctx -> req -> post['user']来获得$_POST['user']
+
+6. 提供 $ctx -> setHeader($k,$v) 设置响应的header
+
+7. 提供 $ctx -> res($body,$status) 来设置输出内容和状态码
 
 ### 内置组件
 
@@ -222,9 +229,7 @@ $ctx -> obj -> id = 12; //ok
 
 框架自动调度的的中间件，在所有自定义中间件之前被调度，负责请求到达时对输入进行简单绑定以及请求结束时，对响应内容进行输出。
 
-对于输入，ReqIo暂时未作任何处理，因为PHP本身已对请求参数提供了方便操作的全局变量：$_GET,$_POST，$_COOKIES,$_SESSION 。
-
-如有必要，可添加一个中间件对输入进行必要的安全性过滤，比如addslashes和xss过滤
+ReqIo只对请求内容绑定到$ctx -> req,并没有做其它任何处理，在使用phpec进行项目开发时，建议添加一个中间件对输入进行必要的安全性过滤，比如addslashes和xss过滤
 
 对于输出处理，该中间件的只是简单的对$ctx->body内容进行输出（如果$ctx->body是数组或对象，则先json_encode，并使用content-type:application/json），应用开发者可添加其它中间件对$ctx->body进行过滤和转换，比如增加模板解释、多语言处理、api格式适配、jsonp输出等。
 
@@ -254,7 +259,7 @@ Router会根椐转换出来的resource和action，在项目的controller目录�
 
 如果资源文件不存在，则尝试用any.php文件和Any类替代，同样，如果类中不存在action对应的方法，也会尝试用_any方法替代
 
-如果路由失败，会设置$ctx -> status = 404，并将$ctx -> body设置为失败的原因，如有必要可自行拦载并转换成需要的格式。
+如果路由失败，会调用$ctx->res()响应一个404,如有必要可自行拦载并转换成需要的格式。
 
 > 框架也会在Router后注入 $ctx -> resource,$ctx -> action, $ctx -> resId，目的是可以让开发者在内置路由之后处理一些无法路由的请求。
 
