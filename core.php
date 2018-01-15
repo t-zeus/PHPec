@@ -12,9 +12,11 @@ final class PHPec{
 	private $mGenerator;
 	private $ctx = [
 		'status' => 200,
+		'resHeaders' => ['X-Powered-By'=>'PHPec @php-'.PHP_VERSION],
 		'allowedMethod' => ['get','post','delete','put','options','head'],
 		'body'   => NULL
 	];
+	
 	function __construct(\PHPec\LogWriter $writer = NULL){
 		$this -> logger = new PHPec\Logger($writer);
 		$this -> _add('\PHPec\ReqIo');
@@ -54,6 +56,7 @@ final class PHPec{
 		}
 	}
 	//开始运行
+
 	function run(){
 		$this -> _add('\PHPec\Router');
 		$this -> mGenerator = $this -> _generator();
@@ -71,6 +74,15 @@ final class PHPec{
 		}else{
 			$m($this);
 		}
+	}
+	//设置res
+	function res($body,$status = 200){
+		$this -> body = $body;
+		$this -> status = $status;
+		//todo:log,status check
+	}
+	function setHeader($k,$v){
+		$this -> ctx['resHeaders'][$k] = $v;
 	}
 	//返回下一个中间件对象
 	private function _generator(){
