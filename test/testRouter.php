@@ -3,8 +3,8 @@ use PHPUnit\Framework\TestCase;
 //test Router direct
 define('APP_PATH',__DIR__.'/../example');
 
-include_once('../core.php');
-include_once('../middleware/router.php');
+include_once('../src/App.php');
+include_once('../src/middleware/router.php');
 
 function setRouter($ctx,$r){
 	$ctx ->route_param = [
@@ -18,7 +18,7 @@ function setRouter($ctx,$r){
 class RouterTest extends TestCase{
 
 	function testNew(){
-		$app =  new PHPec();
+		$app =  new PHPec\App();
 		$app -> use();//skip router;
 		$app -> run();
 		$this -> assertEquals(1,$app->route_param['type']);

@@ -1,7 +1,7 @@
 <?php
 use PHPUnit\Framework\TestCase;
 define('APP_PATH',__DIR__.'/../example');
-include '../core.php';
+include '../src/App.php';
 
 //for app->use
 class MyM3 implements \PHPec\Middleware{
@@ -17,7 +17,7 @@ class MyM3 implements \PHPec\Middleware{
 class MiddlewareTest extends TestCase{
 
 	function testNew(){
-		$app = new PHPec();
+		$app = new PHPec\App();
 		$this -> assertEquals('[PHPec Appp]',$app);
 		return $app;
 	}
