@@ -2,13 +2,13 @@
 error_reporting(E_ALL);
 //example for PHPec
 require 'config.php';
-require '../core.php'; //PHPec framework main
+require '../src/core.php'; //PHPec framework main
 //set global exception handler
 set_exception_handler(function($err){
     die($err);
 });
 
-$app = new PHPec();
+$app = new \PHPec\App();
 //use middleware,you can use them one by one,or once by a array
 /**
 $app -> use([
