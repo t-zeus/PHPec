@@ -9,7 +9,9 @@ class Router implements Middleware {
             trigger_error("router param miss",E_USER_ERROR);
         }
         $r['method'] = strtolower($r['method']);
-        if(!in_array($r['method'],$ctx -> allowedMethod)) trigger_error("request method of {$r['method']} deny",E_USER_ERROR);
+        if(!in_array($r['method'],$ctx -> allowedMethod)){
+		return $ctx -> res('Method not allowed',405);
+	}
         $ctx -> logger -> debug(sprintf("reqMethod=%s,path=%s,qStr=%s",$r['method'],$r['pathinfo'],$r['query']));
         if($r['type'] == R_TYPE['query_string']){
             parse_str($r['query'], $qs);
@@ -39,10 +41,10 @@ class Router implements Middleware {
         $ctx -> logger -> debug(sprintf('router result, type=%s, target=%s->%s',$r['type'], $resource,$action));
         //安全限制
         if(preg_match('/^[A-Z]{1}[A-Za-z\d]*$/',$resource) === 0){
-            return $this -> _notFound('Resource name invalid',$ctx);
+            return $ctx -> res('Resource name invalid',404);
         }
         if($action!='_any' && preg_match('/^[a-z]{1}[A-Za-z\d]*$/',$action) === 0){
-            return $this -> _notFound('action name invalid',$ctx);
+            return $ctx -> res('action name invalid',404);
         }
         //注入resource及action，在路由失败时由其它路由组件补充
         $ctx -> resource = $resource;
@@ -58,12 +60,12 @@ class Router implements Middleware {
                 include_once $resFile;
                 $resource = "Any";
             }else{
-                return $this -> _notFound("Resource file not found",$ctx);
+                return $ctx -> res("Resource file not found",404);
             }
         }
         if(defined('NS_CONTROL') && NS_CONTROL) $resource = NS_CONTROL."\\".$resource;
         if(!class_exists($resource)){
-            return $this-> _notFound('Resource class not found --'.$resource, $ctx);
+            return $ctx -> res('Resource class not found --'.$resource, 404);
         }
         $res = new $resource($ctx);
         if( method_exists($res, $action)){
@@ -71,15 +73,10 @@ class Router implements Middleware {
         }else if( method_exists($res, '_any')){
             $res->_any($ctx);
         }else{
-            return $this-> _notFound('action not found',$ctx);
+            return $ctx -> res('action not found',404);
        	}
     }
 
-    function _notFound($msg,$ctx){
-        $ctx -> logger -> info($msg);
-        $ctx -> status = 404;
-        $ctx -> body = $msg;
-    }
     function end($ctx){
         //do nothing
     }
