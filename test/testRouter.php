@@ -23,15 +23,17 @@ class RouterTest extends TestCase{
 		$app -> run();
 		$this -> assertEquals(1,$app->route_param['type']);
 		$this -> assertEquals('get',$app->route_param['method']);
-		$this -> assertEquals('/',$app->route_param['pathinfo']);
+		$this -> assertEquals(NULL,$app->route_param['pathinfo']);
 		$this -> assertEquals('',$app->route_param['query']);
 		return $app;
 	}
 	function setUp(){
 		$this -> router=new \PHPec\Router();
 	}
+
 	/**
 	 *@depends testNew
+
 	 *@expectedException  Exception
 	 *@expectedExceptionMessage router param miss
 	 */
@@ -51,13 +53,14 @@ class RouterTest extends TestCase{
 	/**
 
 	 *@depends testNew
-	 *@expectedException  Exception
-	 *@expectedExceptionMessage request method of options deny 
+
 	 */
 	function testNotSupportMethod($app){
 		setRouter($app,array(1,'options','/User/shw','c=User&a=profile'));
 		$app -> allowedMethod = ['post','get']; //coverage fllow case
 		$this -> router -> begin($app);
+		$this -> assertEquals('Method not allowed',$app->body);
+		$this -> assertEquals(405,$app->status);
 	}
 	/**
 	 *@depends testNew
@@ -69,12 +72,13 @@ class RouterTest extends TestCase{
 		$this -> assertEquals(404,$app->status);
 	}
 	/**
+
 	 *@depends testNew
 	 */
 	function testClassInvalid($app){
-		setRouter($app,array(2,'post','/Invalid/aa',''));
+		setRouter($app,array(2,'post','/ClassInvalid/aa',''));
 		$this -> router -> begin($app);
-		$this -> assertEquals('Resource class not found --Invalid',$app->body);
+		$this -> assertEquals('Resource class not found --ClassInvalid',$app->body);
 		$this -> assertEquals(404,$app->status);
 	}
 	/**
