@@ -1,22 +1,34 @@
 <?php
 namespace PHPec;
+if (!function_exists('getallheaders')) { 
+    function getallheaders()  { 
+        $headers = []; 
+        foreach ($_SERVER as $name => $value)  { 
+           if (substr($name, 0, 5) == 'HTTP_') { 
+               $headers[str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($name, 5)))))] = $value; 
+           } 
+        } 
+       return $headers; 
+    } 
+} 
 class ReqIo implements Middleware{
 	//处理输入
 	function begin($ctx){
 		$ctx -> route_param = [
 			'type' 		=> ROUTER_TYPE,
 			'method'	=> isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] :'get',
-			'pathinfo'	=> isset($_SERVER['PATH_INFO']) ? $_SERVER['PATH_INFO'] : '/',
+			'pathinfo'	=> isset($_SERVER['PATH_INFO']) ? $_SERVER['PATH_INFO'] : NULL,
 			'query'		=> isset($_SERVER['QUERY_STRING']) ? $_SERVER['QUERY_STRING'] : '',
 		];
-		//$ctx -> headers = [];
-		//$ctx -> req =;
-		//$ctx -> cookies = [];
+		$ctx -> req = new \stdClass;
+		$ctx -> req -> header = getallheaders();
+		$ctx -> req -> get    = $_GET;
+		$ctx -> req -> post   = $_POST;
+		$ctx -> req -> cookie = $_COOKIE;
 		//unset($_POST,$_GET,$_REQUEST,$_SERVER);
 	}
 	//输出响应
 	function end($ctx){
-		@header("X-Powered-By: PHPec @php-".PHP_VERSION);
 		$code = [
 			100 => "HTTP/1.1 100 Continue",
 			101 => "HTTP/1.1 101 Switching Protocols",
@@ -66,16 +78,21 @@ class ReqIo implements Middleware{
 			$contentType = 'text/html;charset=utf-8';
 			if(NULL !== $ctx -> body){
 				if(is_array($ctx -> body) || is_object($ctx -> body)){
-					$contentType = "text/html;charset=utf-8";
+					$contentType = "application/json;charset=utf-8";
 			 		$ctx -> body = json_encode($ctx -> body);
 				}
 	 		}else{
 				$ctx -> body =  $code[$ctx -> status];
 			}
-			@header("Content-Type: {$contentType}");
-			if(!empty($ctx -> resHeaders)){
-				foreach($ctx -> resHeaders as $header){
-					header($header);
+			if(empty($ctx -> resHeaders['Content-Type'])){
+				$ctx -> setHeader('Content-Type',$contentType);
+			}
+			if(count($ctx -> resHeaders)>0){
+				if(headers_sent($f,$l)){
+					trigger_error("Header already sent at $f line $l",E_USER_WARNING);
+				}
+				foreach($ctx -> resHeaders as $k => $v){
+					@header("$k : $v");
 				}
 			}
 			echo $ctx -> body;
