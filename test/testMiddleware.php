@@ -86,6 +86,7 @@ class MiddlewareTest extends TestCase{
 		});
 		$app -> use(new MyM3());
 		$app -> use(['M1','M2']);
+		$app -> use('M3','>m3 args');
 		$app -> use();//skip Router
 
 		$app -> use('M1'); //donot exec
@@ -95,8 +96,8 @@ class MiddlewareTest extends TestCase{
 		$this -> assertEquals(null,$app->route_param['pathinfo']);
 		$this -> assertEquals('',$app->route_param['query']);
 		$this -> assertEquals('hello world',$app->my); //form MyM3
-		$this -> assertEquals('[begin]>m1>m2>m2 end>m1 end[end]',$app->text);
-		$this -> assertEquals('[begin]>m1>m2>m2 end>m1 end[end]',$app->body);
+		$this -> assertEquals('[begin]>m1>m2>m3 args>m3 end>m2 end>m1 end[end]',$app->text);
+		$this -> assertEquals('[begin]>m1>m2>m3 args>m3 end>m2 end>m1 end[end]',$app->body);
 		//$this -> expectOutputString('[begin]>m1>m2>m2 end>m1 end[end]');
 	}
 }
