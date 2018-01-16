@@ -23,7 +23,7 @@ final class App{
 		$this -> _add('\PHPec\ReqIo');
 	}
 	//添加中间件
-	private function _add($middleware = NULL){
+	private function _add($middleware = NULL,$param=null){
 		if(!empty($this -> middleware )){
 			if(false === $this -> middleware[count($this -> middleware)-1]){
 				return; //skip
@@ -43,7 +43,7 @@ final class App{
 				if(function_exists($middleware)){
 					$this -> middleware[] = $middleware;
 				}elseif(class_exists($middleware)){
-					$m = new $middleware();
+					$m = new $middleware($param);
 					if (!($m instanceof Middleware)){
 						trigger_error("middleware invalid: $middleware not implements \\PHPec\\Middleware",E_USER_ERROR);
 					}
@@ -94,13 +94,14 @@ final class App{
 	//Overload use方法
 	function __call($method,$value){
 		if($method == 'use'){
-			$m = isset($value[0]) ? $value[0] : false;
+			$m = array_shift($value);
 			if(is_array($m)){	
 				foreach($m as $v){
 					$this -> _add($v);	
 				}
 			}else{
-				$this -> _add($m);
+				$param = empty($value) ? null : $value[0];
+				$this -> _add($m,$param);
 			}
 		}else{
 			trigger_error("call not defined method: PHPec -> {$method}",E_USER_ERROR);
