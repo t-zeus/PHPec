@@ -77,9 +77,9 @@ $app->use(function($ctx){
 	$ctx -> next();
 	//do something
 });
-$app->use(['M1','M2']);
+$app->use(['M1','M2']); //用数组传入多个中间件
 $app->use(); //传递空参数时，所有后面的中间件被忽略，包括内置的Router;
-$app->use('M3')
+$app->use('M3','param1'); //如果M3是一个Class，可以接受第二个参数作为其构造函数的参数
 
 $app->run();
 ```
@@ -109,6 +109,8 @@ $app -> use(function($ctx){
 //该方式无需手动调用$ctx->next(),在执行完begin方法后，框架自动调度next方法
 //m1.php
 class M1 implements \PHPec\Middleware {
+	function __construct($param = null){
+	}
 	function begin($ctx){
 		$ctx -> body = 'hello';
 	}
@@ -130,18 +132,18 @@ function M1($ctx){
 然后使用时用类名传入：
 ```
 $app -> use('M1');
-$app -> use('M2');
+$app -> use('M2','param1'); //如果是类的方式，第一参数为类名，第二参数为类构造函数的参数
 ```
 
 3. 类实例
 
 类与独立文件类似，必须实现\PHPec\Middleware接口,但对文件名及保存位置没有要求，你甚至可以在一个文件中实现多个Middleware的类。
 
-> 利用此特性，你甚至可以加载由composer管理的中间件库
+> 利用此特性，你甚至可以加载由composer管理的中间件库，实例化时也可以向构造函数传入更多的参数。
 
 ```
 require 'vendor/my/middle/My.php'; //或者使用composer的autoload
-$app -> use(new MyMiddle()); //My.php中有Class MyMiddle implements \PHPec\Middleware
+$app -> use(new MyMiddle('paam1')); //My.php中有Class MyMiddle implements \PHPec\Middleware
 ```
 
 4. 通过函数返回
