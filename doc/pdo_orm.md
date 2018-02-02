@@ -1,11 +1,11 @@
 MySQL ORM
 ---------
 
-PHPec内置了一个基于PDO实现的mysql orm，封装了基本的CRUD操作及简单事务。
+PHPec内置了一个基于PDO实现的orm，封装了基本的CRUD操作及简单事务。
 
 ## 引入
 
-在主入口使用 ```$app -> use('\PHPec\MysqlOrm')```引用，框架会使用$ctx -> orm 来绑定。
+在主入口使用 ```$app -> use('\PHPec\PdoOrm')```引用，框架会使用$ctx -> pdo 来绑定。
 
 > 在使用之前，需要定义DB_DSN,DB_USER,DB_PASS常量，具体可参考test中的用法。
 
@@ -15,26 +15,26 @@ PHPec内置了一个基于PDO实现的mysql orm，封装了基本的CRUD操作�
 
 ### map方法
 
-    ```$ctx -> orm -> map('table_name')```
+    ```$ctx -> pdo -> map('table_name')```
 
     该方法生成一个基于指定表名的操作Dao类，提供add,update,delete,get,getOne等方法。
 
 ### query方法
 
-    ```$ctx -> orm -> query($sql,$param=[])```
+    ```$ctx -> pdo -> query($sql,$param=[])```
 
     该方法执行一个sql语句，可以使用参数绑定的方式，比如：
 
     ```
     //只有一个占位符，可以直接用单一值
-    $ctx -> orm -> query('select * from a where id=?',12); 
+    $ctx -> pdo -> query('select * from a where id=?',12); 
 
     //多个占位符，使用数组
-    $ctx -> orm -> query('select * from a where id=? and name=?',[12,'time']);
+    $ctx -> pdo -> query('select * from a where id=? and name=?',[12,'time']);
 
     //in要使用(?)占位，并在该占位要使用数组替换(就算只有一值也是)
-    $ctx -> orm -> query('select * from a where id in (?)',[ [11] ] );
-    $ctx -> orm -> query('select * from a where name=? and id in (?)',['tim',[12,11]]);
+    $ctx -> pdo -> query('select * from a where id in (?)',[ [11] ] );
+    $ctx -> pdo -> query('select * from a where name=? and id in (?)',['tim',[12,11]]);
     ```
 
     > 如果是简单的CRUD，建议使用map出来的Dao对象来操作。提供query方法是为了增加灵活性。
@@ -44,8 +44,8 @@ PHPec内置了一个基于PDO实现的mysql orm，封装了基本的CRUD操作�
     transaction方法用来包装一个事务,使用方法是装事务操作放到闭包里。
 
     ```
-    $user = $ctx -> orm -> map('user'); //生成use表的dao
-    $re = $ctx -> orm -> transaction(function(&$err) use($user){ 
+    $user = $ctx -> pdo -> map('user'); //生成use表的dao
+    $re = $ctx -> pdo -> transaction(function(&$err) use($user){ 
         $id = $user -> add(['name':'tim']);
         $user -> update(["id=?",$id],['name':'tim1']);
         //return false
@@ -58,11 +58,11 @@ PHPec内置了一个基于PDO实现的mysql orm，封装了基本的CRUD操作�
 
 ## Dao对象
 
-使用$ctx->orm -> map（）方法生成出来的是一个Dao对象，该对象提供常见的CRUD方法，以下是一个例子：
+使用$ctx-> pdo-> map（）方法生成出来的是一个Dao对象，该对象提供常见的CRUD方法，以下是一个例子：
 
 
 ```
-$user = $ctx -> orm -> map('user');
+$user = $ctx -> pdo -> map('user');
 $uid = $user -> add(['name'=>'tim','type'=>'dev']);
 $re =  $user -> update("id=$uid",['type'=>'prod']);
 $row = $user -> getOne(['type=?','prod']);

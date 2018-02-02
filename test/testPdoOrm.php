@@ -4,17 +4,17 @@ use PHPUnit\Framework\TestCase;
 define('APP_PATH',__DIR__.'/../example');
 
 require '../src/App.php';
-require '../src/middleware/mysql_orm.php';
+require '../src/middleware/pdo_orm.php';
 
 define('DB_DSN','mysql:host=127.0.0.1;dbname=test');
 define('DB_USER','root');
 define('DB_PASS','root');
 
-class RouterTest extends TestCase {
+class PdoOrmTest extends TestCase {
 
 	//连接,创建测试库
 	function testCreate(){
-		$orm = new \PHPec\MysqlOrm();
+		$orm = new \PHPec\PdoOrm();
 		$re1 = $orm -> query("drop table if exists phpec_unittest");
 		$sql = 'CREATE TABLE  `phpec_unittest`(
 			   `id` INT UNSIGNED AUTO_INCREMENT,

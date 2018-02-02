@@ -109,7 +109,7 @@ phpec目前支持多种方式使用中间件, 请参考 [如何编写及使用�
 
 1. [自动路由](doc/router.md)
 
-2. [MySQL ORM](doc/mysql_orm.md)
+2. [PDO ORM](doc/pdo_orm.md)
 
 
 ### $ctx
