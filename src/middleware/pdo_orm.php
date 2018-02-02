@@ -1,6 +1,6 @@
 <?php
 namespace PHPec;
-class MysqlOrm implements Middleware{
+class PdoOrm implements Middleware{
     function map(String $table,Array $schema = []){
         return new Dao($table,$schema);
     }
@@ -21,7 +21,7 @@ class MysqlOrm implements Middleware{
     }
 
     function begin($ctx){
-        $ctx -> orm = $this;
+        $ctx -> pdo = $this;
     }
     function end($ctx){
     }
