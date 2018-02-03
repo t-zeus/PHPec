@@ -51,9 +51,7 @@ class RouterTest extends TestCase{
 		$this -> router -> begin($app);
 	}
 	/**
-
 	 *@depends testNew
-
 	 */
 	function testNotSupportMethod($app){
 		setRouter($app,array(1,'options','/User/shw','c=User&a=profile'));
@@ -72,7 +70,6 @@ class RouterTest extends TestCase{
 		$this -> assertEquals(404,$app->status);
 	}
 	/**
-
 	 *@depends testNew
 	 */
 	function testClassInvalid($app){
