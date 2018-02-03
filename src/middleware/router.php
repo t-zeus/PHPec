@@ -3,17 +3,20 @@
 namespace PHPec;
 
 class Router implements Middleware {
+    private $type = ['query_string'=>1,'path_info'=>2,'RESTful'=>3]; 
     function begin($ctx){ //$ctx->route_param= array(type=>,method=>,pathinfo=>,query=>)
         $r = $ctx -> route_param;
         if(empty($r) || empty($r['type']) || empty($r['method'])){
             trigger_error("router param miss",E_USER_ERROR);
         }
+        if(false === array_search($r['type'],array_values($this -> type),true)){
+            trigger_error("ROUTER_TYPE error",E_USER_ERROR);
+        }
         $r['method'] = strtolower($r['method']);
         if(!in_array($r['method'],$ctx -> allowedMethod)){
-		return $ctx -> res('Method not allowed',405);
-	}
-        $ctx -> logger -> debug(sprintf("reqMethod=%s,path=%s,qStr=%s",$r['method'],$r['pathinfo'],$r['query']));
-        if($r['type'] == R_TYPE['query_string']){
+            return $ctx -> res('Method not allowed',405);
+        }
+        if($r['type'] == $this -> type['query_string']){
             parse_str($r['query'], $qs);
             $resource = !empty($qs['c']) ? $qs['c'] : 'Any';
             $action   = !empty($qs['a']) ? $qs['a'] : '_any';
@@ -23,7 +26,7 @@ class Router implements Middleware {
             array_shift($path);
             $resource = !empty($path[0]) ? $path[0] : 'Any';
             $action   = !empty($path[1]) ? $path[1] : '_any';
-            if($r['type'] == R_TYPE['RESTful']){
+            if($r['type'] == $this -> type['RESTful']){
                 $action = $r['method'];
                 if($resource !='Any'){ //do noting if Any
                     $resId = [];
@@ -38,7 +41,6 @@ class Router implements Middleware {
                 }
             }
         }
-        $ctx -> logger -> debug(sprintf('router result, type=%s, target=%s->%s',$r['type'], $resource,$action));
         //安全限制
         if(preg_match('/^[A-Z]{1}[A-Za-z\d]*$/',$resource) === 0){
             return $ctx -> res('Resource name invalid',404);
