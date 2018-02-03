@@ -1,4 +1,4 @@
-MySQL ORM
+PDO ORM
 ---------
 
 PHPec内置了一个基于PDO实现的orm，封装了基本的CRUD操作及简单事务。
@@ -19,25 +19,25 @@ PHPec内置了一个基于PDO实现的orm，封装了基本的CRUD操作及简�
 
     该方法生成一个基于指定表名的操作Dao类，提供add,update,delete,get,getOne等方法。
 
-### query方法
+### exec方法
 
-    ```$ctx -> pdo -> query($sql,$param=[])```
+    ```$ctx -> pdo -> exec($sql,$param=[])```
 
     该方法执行一个sql语句，可以使用参数绑定的方式，比如：
 
     ```
     //只有一个占位符，可以直接用单一值
-    $ctx -> pdo -> query('select * from a where id=?',12); 
+    $ctx -> pdo -> exec('select * from a where id=?',12); 
 
     //多个占位符，使用数组
-    $ctx -> pdo -> query('select * from a where id=? and name=?',[12,'time']);
+    $ctx -> pdo -> exec('select * from a where id=? and name=?',[12,'time']);
 
     //in要使用(?)占位，并在该占位要使用数组替换(就算只有一值也是)
-    $ctx -> pdo -> query('select * from a where id in (?)',[ [11] ] );
-    $ctx -> pdo -> query('select * from a where name=? and id in (?)',['tim',[12,11]]);
+    $ctx -> pdo -> exec('select * from a where id in (?)',[ [11] ] );
+    $ctx -> pdo -> exec('select * from a where name=? and id in (?)',['tim',[12,11]]);
     ```
 
-    > 如果是简单的CRUD，建议使用map出来的Dao对象来操作。提供query方法是为了增加灵活性。
+    > 如果是简单的CRUD，建议使用map出来的Dao对象来操作。提供exec方法是为了增加灵活性。
 
 ### transaction方法
 
