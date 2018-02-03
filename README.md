@@ -111,6 +111,10 @@ phpec目前支持多种方式使用中间件, 请参考 [如何编写及使用�
 
 2. [PDO ORM](doc/pdo_orm.md)
 
+3. [Mongo ORM](doc/mongo_orm.md)
+
+4. [Logger](doc/logger.md)
+
 
 ### $ctx
 
@@ -152,38 +156,8 @@ PHPec默认地将请求相关的内容绑定在$ctx -> req对象，包括 get,po
 
 7. 提供 $ctx -> res($body,$status) 来设置输出内容和状态码
 
-### logger
+你也可以通过设置 $ctx -> body 的值来设置响应的内容
 
-PHPec内置了一个logger类，并绑定在$ctx -> logger中，该类提供几个输出日志的方法：
-
-```
-$ctx -> logger -> debug();
-$ctx -> logger -> info();
-$ctx -> logger -> warn();
-$ctx -> logger -> error();
-```
-$ctx->logger是一个可扩展的实现，内置的实现，会将日志以“类型_yyyymmdd.log”为文件名保存在logs目录。哪些日志要输出，使用常量LOG_LEVEL来定义
-
-debug(1), info(2),warn(4),error(8)，比如： LOG_LEVEL = 15表示全部(1+2+4+8)
-
-如果你想改变$ctx->logger的输出方式，可以在new PHPec()时传入一个实现了\PHPec\LogWriter接口的writer,如：
-
-```
-class MyLogWriter implements \PHPec\LogWriter{
-	//$msg为日志内容，$type为类型(debug,info,warn,error)
-	function write($msg,$type){
-		//具体处理，比如发到消息队列
-	}
-}
-$app = new PHPec(new MyLogWriter());
-```
-
-
-如果不想改变框架内置的logger行为，同样可以使用\PHPec\Logger自己创建一个logger对象
-
-```
-$logger = new \PHPec\Logger(); //不传参表示使用内置writer，你可以指定自己的writer
-```
 
 ## License
 
