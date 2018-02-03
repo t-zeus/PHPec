@@ -1,21 +1,25 @@
 <?php
 namespace PHPec;
+defined('PDO_DSN') || exit('PDO_DSN not defined');
+defined('PDO_USER') || exit('PDO_USER not defined');
+defined('PDO_PASS') || exit('PDO_PASS not defined');
+
 class PdoOrm implements Middleware{
     function map(String $table,Array $schema = []){
-        return new Dao($table,$schema);
+        return new PdoDao($table,$schema);
     }
-    function query(String $sql,$params = null){
-        return Dao::query($sql,$params);
+    function exec(String $sql,$params = null){
+        return PdoDao::query($sql,$params);
     }
     function transaction(\Closure $query){
         try{
-            Dao::connect();
-            Dao::$dbh ->beginTransaction();
+            PdoDao::connect();
+            PdoDao::$dbh ->beginTransaction();
             $re = $query($err);
             if($re === false) throw new \Exception("Transaction fail: ".$err); 
-            return Dao::$dbh -> commit();
+            return PdoDao::$dbh -> commit();
         }catch(\Exception $ex){
-            Dao::$dbh -> rollback();
+            PdoDao::$dbh -> rollback();
             return false;
         }
     }
@@ -27,7 +31,7 @@ class PdoOrm implements Middleware{
     }
 }
 
-class Dao{
+class PdoDao{
     private $table = '';
     static $dbh = null;
     function __construct($table,$schema){
@@ -36,7 +40,7 @@ class Dao{
     }
     static function connect(){
         if(!self::$dbh) {
-            self::$dbh = new \PDO(DB_DSN, DB_USER, DB_PASS);
+            self::$dbh = new \PDO(PDO_DSN, PDO_USER, PDO_PASS);
             self::$dbh -> setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
         }
     }
@@ -47,7 +51,7 @@ class Dao{
         if($ph > 0 && $param !== null){
             if(!is_array($param)) $param = [$param];
             if($ph != count($param)){
-                throw new \PDOException('PHPec MysqlOrm Error: placeholder not match',1);
+                throw new \PDOException('PHPec PDOOrm Error: placeholder not match',1);
             }
             $p = '/\([\h]*\?[\h]*\)/';
             foreach($param as $v){
@@ -108,7 +112,7 @@ class Dao{
         $fields = isset($options['fields']) ? $options['fields'] : '*';
         $sort = '';
         if(isset($options['sort'])){
-            if(!is_string($options['sort'])) throw new \PDOException('PHPec MysqlOrm Error: options sort invalid',1);
+            if(!is_string($options['sort'])) throw new \PDOException('PHPec PDOOrm Error: options sort invalid',1);
             $sort = ' order by '.$options['sort'];
         }
         $page     = isset($options['page']) ? intval($options['page']) :  1;
@@ -125,7 +129,7 @@ class Dao{
         $fields = isset($options['fields']) ? $options['fields'] : '*';
         $sort = '';
         if(isset($options['sort'])){
-            if(!is_string($options['sort'])) throw new \PDOException('PHPec MysqlOrm Error: options sort invalid',1);
+            if(!is_string($options['sort'])) throw new \PDOException('PHPec PDOOrm Error: options sort invalid',1);
             $sort = ' order by '.$options['sort'];
         }
         $sql = sprintf("select %s from %s where %s%s limit 1",$fields,$this -> table,$w[0],$sort);
@@ -135,7 +139,7 @@ class Dao{
     }
     function _checkTable(){
         if(!$this -> table){
-            throw new \PDOException("PHPec MysqlOrm error:  table not yet set", 1);
+            throw new \PDOException("PHPec PDOOrm error:  table not yet set", 1);
         }
     }
     /**
@@ -155,7 +159,7 @@ class Dao{
             $p = "/(>=|<=|<>|=|>|<| is not | is | in | not in | like | not like )/i";
             $arrs = preg_split($p,$where,2,PREG_SPLIT_DELIM_CAPTURE);
             if(count($arrs) != 3){
-                throw new \PDOException('PHPec MysqlOrm Error: $where exp invalid',1);
+                throw new \PDOException('PHPec PDOOrm Error: $where exp invalid',1);
             }
             $op = strtolower($arrs[1]);
             if($op == ' in ' || $op == ' not in '){
@@ -170,22 +174,22 @@ class Dao{
         }elseif(is_array($where) && count($where) == 2){
             if(!is_array($where[1])) $where[1] = [$where[1]];
             if(substr_count($where[0],"?") != count($where[1])){
-                throw new \PDOException('PHPec MysqlOrm Error: $where exp invalid -- placeholder not match',1);
+                throw new \PDOException('PHPec PDOOrm Error: $where exp invalid -- placeholder not match',1);
             }
             return $where;
         }else{
-            throw new \PDOException('PHPec MysqlOrm Error: $where exp invalid',1);
+            throw new \PDOException('PHPec PDOOrm Error: $where exp invalid',1);
         }
     }
     //处理insert或update的data,['a'=>'b','a1'=>'b2'] => ['a=?,a1=?',['b','b2']]
     static function _buildData($data){
         if(!is_array($data) || empty($data)) { 
-            throw new \PDOException("PHPec MysqlOrm Error: \$data must be a array", 1);
+            throw new \PDOException("PHPec PDOOrm Error: \$data must be a array", 1);
         }
         $fields = $params = [];
         foreach($data as $k => $v){
             if(is_numeric($k)){
-                throw new \PDOException("PHPec MysqlOrm Error: field name of \$data unexpected", 1);
+                throw new \PDOException("PHPec PDOOrm Error: field name of \$data unexpected", 1);
             }
             $fields[] = "`$k` = ?";
             $params[] = $v;
