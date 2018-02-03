@@ -110,12 +110,32 @@ ReqIo只对请求内容绑定到$ctx -> req,并没有做其它任何处理，在
 
 请参考 [自动路由中间件](router.md)
 
-3. MysqlOrm: mysql orm操作
+3. PdoOrm: pdo orm操作
 
 该中间件不会自动调用，如果需要使用，可以自行引入:
 
 ```
-$app -> use('\PHPec\MysqlOrm');
+$app -> use('\PHPec\PdoOrm');
 ```
 
-请参考 [MysqlOrm中间件](mysql_orm.md)
+请参考 [PdoOrm中间件](pdo_orm.md)
+
+4. MongoOrm: mongo orm操作
+
+该中间件不会自动调用，如果需要使用，可以自行引入:
+
+```
+$app -> use('\PHPec\MongoOrm');
+```
+
+请参考 [MongoOrm中间件](mongo_orm.md)
+
+4. Logger
+
+该中间件不会自动调用，如果需要使用，可以自行引入:
+
+```
+$app -> use('\PHPec\Logger');
+```
+
+请参考 [Logger](logger.md)
