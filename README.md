@@ -115,6 +115,7 @@ phpec目前支持多种方式使用中间件, 请参考 [如何编写及使用�
 
 4. [Logger](doc/logger.md)
 
+5. [JWT](doc/jwt.md)
 
 ### $ctx
 
