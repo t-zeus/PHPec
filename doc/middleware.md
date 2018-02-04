@@ -24,7 +24,7 @@ $app -> use(function($ctx){
 
 ```
 //使用实现\PHPec\Middleware接口的类，需实现begin($ctx)和end($ctx)方法
-//该方式无需手动调用$ctx->next(),在执行完begin方法后，框架自动调度next方法
+//该方式无需手动调用$ctx->next(),在执行完begin方法后，框架自动调度next方法（begin方法返回===false时不调用）
 //m1.php
 class M1 implements \PHPec\Middleware {
     function __construct($param = null){
@@ -130,7 +130,7 @@ $app -> use('\PHPec\MongoOrm');
 
 请参考 [MongoOrm中间件](mongo_orm.md)
 
-4. Logger
+5. Logger
 
 该中间件不会自动调用，如果需要使用，可以自行引入:
 
@@ -139,3 +139,14 @@ $app -> use('\PHPec\Logger');
 ```
 
 请参考 [Logger](logger.md)
+
+
+6. JWT
+
+JWT的校验和生成
+
+```
+$app -> use('\PHPec\Jwt');
+```
+
+请参考 [Jwt](jwt.md)
