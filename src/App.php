@@ -68,8 +68,8 @@ final class App{
         if(!$m) return;
         $this -> mGenerator -> next();
         if($m instanceof Middleware){
-            $m -> begin($this);
-            $this -> next();
+            $r = $m -> begin($this);
+            if(false !== $r) $this -> next();
             $m -> end($this);
         }else{
             $m($this);
@@ -79,7 +79,7 @@ final class App{
     function res($body,$status = 200){
         $this -> body = $body;
         $this -> status = $status;
-        //todo:log,status check
+        return true;
     }
     function setHeader($k,$v){
         $this -> ctx['resHeaders'][$k] = $v;
@@ -135,7 +135,7 @@ final class App{
             }
         }
         $mFile = $path.strtolower(preg_replace( '/([a-z0-9])([A-Z])/', "$1_$2",  $classFile)).".php";
-        (file_exists($mFile) && require $mFile) || trigger_error("load middleware file fail -- {$mFile}",E_USER_ERROR);
+        (file_exists($mFile) && require_once $mFile) || trigger_error("load middleware file fail -- {$mFile}",E_USER_ERROR);
         return $middleware;
     }
 }
