@@ -1,28 +1,27 @@
 <?php
-namespace PHPec;
+namespace PHPec\middleware;
 
-defined('ROUTER_TYPE') || define('ROUTER_TYPE',1);
-
-if (!function_exists('getallheaders')) { 
-    function getallheaders()  { 
-        $headers = []; 
-        foreach ($_SERVER as $name => $value)  { 
-            if (substr($name, 0, 5) == 'HTTP_') { 
-                $headers[str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($name, 5)))))] = $value; 
+if (!function_exists('getallheaders')) {
+    function getallheaders()
+    { 
+        $headers = [];
+        foreach ($_SERVER as $name => $value)  {
+            if (substr($name, 0, 5) == 'HTTP_') {
+                $k = str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($name, 5)))));
+                $headers[$k] = $value; 
             } 
         } 
         return $headers; 
     } 
 } 
-class ReqIo implements Middleware{
-    //处理输入
-    function begin($ctx){
-        $ctx -> route_param = [
-            'type'      => ROUTER_TYPE,
-            'method'    => isset($_SERVER['REQUEST_METHOD']) ? $_SERVER['REQUEST_METHOD'] :'get',
-            'pathinfo'  => isset($_SERVER['PATH_INFO']) ? $_SERVER['PATH_INFO'] : NULL,
-            'query'     => isset($_SERVER['QUERY_STRING']) ? $_SERVER['QUERY_STRING'] : '',
-        ];
+final class CommonIO implements \PHPec\interfaces\Middleware
+{
+    //Input handler
+    public function begin($ctx)
+    {
+        $ctx -> method    = isset($_SERVER['REQUEST_METHOD']) ? strtoupper($_SERVER['REQUEST_METHOD']) :'GET';
+        $ctx -> pathinfo  = isset($_SERVER['PATH_INFO']) ? $_SERVER['PATH_INFO'] : null;
+        $ctx -> query_str = isset($_SERVER['QUERY_STRING']) ? $_SERVER['QUERY_STRING'] : '';
         $ctx -> req = new \stdClass;
         $ctx -> req -> header = getallheaders();
         $ctx -> req -> get    = $_GET;
@@ -30,8 +29,9 @@ class ReqIo implements Middleware{
         $ctx -> req -> cookie = $_COOKIE;
         //unset($_POST,$_GET,$_REQUEST,$_SERVER);
     }
-    //输出响应
-    function end($ctx){
+    //Output handler
+    public function end($ctx)
+    {
         $code = [
             100 => "HTTP/1.1 100 Continue",
             101 => "HTTP/1.1 101 Switching Protocols",
@@ -74,28 +74,29 @@ class ReqIo implements Middleware{
             504 => "HTTP/1.1 504 Gateway Time-out",
             505 => "HTTP Version not supported"
         ];
-        if(!isset($code[$ctx -> status])){
+        if (!isset($code[$ctx -> status])) {
             echo "Unknown http status code";
-        }else{
+        } else {
             http_response_code($ctx -> status);
+            $ctx -> setHeader('Content-Type', 'text/html;charset=utf-8');
             $contentType = 'text/html;charset=utf-8';
-            if(NULL !== $ctx -> body){
-                if(is_array($ctx -> body) || is_object($ctx -> body)){
+            if (null !== $ctx -> body) {
+                if (is_array($ctx -> body) || is_object($ctx -> body)) {
                     $contentType = "application/json;charset=utf-8";
                     $ctx -> body = json_encode($ctx -> body);
                 }
-            }else{
+            } else {
                 $ctx -> body =  $code[$ctx -> status];
             }
-            if(empty($ctx -> resHeaders['Content-Type'])){
-                $ctx -> setHeader('Content-Type',$contentType);
+            if (empty($ctx -> resHeaders['Content-Type'])) {
+                $ctx -> setHeader('Content-Type', $contentType);
             }
-            if(count($ctx -> resHeaders)>0){
-                if(headers_sent($f,$l)){
-                    trigger_error("Header already sent at $f line $l",E_USER_WARNING);
+            if (count($ctx -> resHeaders) > 0) {
+                if (headers_sent($f,$l)) {
+                    trigger_error("Header already sent at $f line $l", E_USER_WARNING);
                 }
-                foreach($ctx -> resHeaders as $k => $v){
-                    @header("$k : $v");
+                foreach ($ctx -> resHeaders as $k => $v) {
+                    header("$k : $v");
                 }
             }
             echo $ctx -> body;
