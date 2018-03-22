@@ -2,7 +2,7 @@
     "name":"tim1020/phpec",
     "description":"A simple 、easy and lightweight php web framework",
     "type":"library",
-    "keywords":["web","framework","mvc","middleware","router"],
+    "keywords":["web","framework","mvc","middleware","router","container","dependency injection"],
     "license":"MIT",
     "authors":[{
         "name":"Tim",
