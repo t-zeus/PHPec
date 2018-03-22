@@ -1,63 +1,46 @@
 <?php
-error_reporting(E_ALL);
 //example for PHPec
-require 'config.php';
-require '../src/core.php'; //PHPec framework main
-//set global exception handler
-set_exception_handler(function($err){
-    die($err);
-});
+define('APP_PATH', __DIR__.'/app');
+define('APP_NS', 'example');
+date_default_timezone_set('UTC');
 
-$app = new \PHPec\App();
-//use middleware,you can use them one by one,or once by a array
-/**
-$app -> use([
-	function($ctx){
-		//do
-		$ctx -> next();
-		//do
-	},
-	'M1',
-	'M2'
-]);
-*/
-
-//Use Closure ;
-$app -> use(function($ctx){
-    $ctx -> text .= '[begin] ';
-    $ctx -> next();// pass to next middleware,if not ,skip all fllow middleware include \PHPec\Router 
-    $ctx -> text .= ' [end]';
-    if(!$ctx -> body){
-		$ctx -> body = $ctx -> text;
-    }
-});
-
-//you can use a Object instance which implements \PHPec\Middleware
-//so,you can use a Middleware with composer manage.
-//$app -> use(new MyMiddleware()); //MyMiddleware must implements \PHPec\Middleware, 
-
-//Use a function in file (search in "middleware" dir)
-//function name as middleware name, filename is camel_case.php and then function name is CamelCase
-$app -> use('M1'); //APP_PATH.'/middleware/m1.php';
-
-//Use a class implement \PHPec\Middleware in file(middleware dir) like use function file
-$app -> use('M2'); //APP_PATH.'/middleware/m2.php';
-
-//skip other middleware,include \PHPec\Router
-//$app -> use();
-
-//this will not exec if $app -> use() effective
-$app -> use(function($ctx){
-   $ctx -> text .= ' [after $app->use()] ';
-   $ctx -> next();
-});
+require '../../../autoload.php'; //composer autoload
 
 
-//if not use  $app -> use() to skip, \PHPec\Router will call
-//i.e. 
-//  /?c=User&a=profile  => call method profile @APP_PATH./controller/user.php
-//  /?c=User&a=my       => call method _any @APP_PATH./controller/user.php (method "my" not found ,_any instead)
-//  /?c=Shop&a=show     => call method show @APP_PATH./controller/any.php (shop.php not found,any.php instead)
+try {
+    $app = new \PHPec\App();
 
-$app -> run();
+    //Use Closure ;
+    $app -> use(function($ctx){
+        $ctx -> text .= '[begin] ';
+        $ctx -> next();// pass to next middleware,if not ,skip all fllow middleware include \PHPec\Router 
+        $ctx -> text .= ' [end]';
+        if(!$ctx -> body){
+    		$ctx -> body = $ctx -> text;
+        }
+    });
+
+    //Use a class implement \PHPec\interfaces\middleware in file(middleware dir) 
+    $app -> use('M1'); //APP_PATH.'/middleware/M1.php';
+
+    //skip other middleware,include \PHPec\middleware\Router
+    //$app -> use();
+
+    //this will not exec if $app -> use() effective
+    $app -> use(function($ctx){
+       $ctx -> text .= ' [after $app->use()] ';
+       $ctx -> next();
+    });
+
+
+    //if not use  $app -> use() to skip, \PHPec\Router will call
+    //i.e. 
+    //  /?c=User&a=profile  => call method profile @APP_PATH./controller/user.php
+    //  /?c=User&a=my       => call method _any @APP_PATH./controller/user.php (method "my" not found ,_any instead)
+    //  /?c=Shop&a=show     => call method show @APP_PATH./controller/any.php (shop.php not found,any.php instead)
+
+    $app -> run();
+} catch (Exception $e) {
+    var_dump($e);
+}
 

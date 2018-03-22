@@ -1,34 +1,38 @@
 <?php
 //辅助函数,定义一些通用处理
-namespace PHPec;
-
-defined('APP_PATH')  || define('APP_PATH',dirname($_SERVER['SCRIPT_FILENAME']));
+defined('APP_PATH')  || exit('APP_PATH not defined');
+defined('APP_NS')  || define('APP_NS', '');
 
 //hander E_USER_ERROR
 set_error_handler(function($errno, $errstr, $errfile, $errline){
-    if($errno == E_USER_ERROR){
+    if ($errno == E_USER_ERROR) {
         throw new \Exception($errstr, 1);
-    }elseif($errno == E_USER_WARNING){
+    } elseif ($errno == E_USER_WARNING) {
         echo "PHPec Warning: ".$errstr."\n\n";
         //todo: log
     }
     return false;
 });
 
-/**
- * 控制器基类
- */
-class BaseControl {
-    function __construct($ctx){
-        $this->ctx = $ctx;
-        if(method_exists($this, '_before')){
-            $this -> _before($this->ctx);
-        }
+//autoload
+spl_autoload_register(function($className){
+    $pieces = explode('\\', $className);
+    $class  = array_pop($pieces);
+    if (preg_match('/^[A-Z]{1}[A-Z\/a-z\d]*$/', $class) === 0) {
+        trigger_error("className '$class' not a CamelCase format", E_USER_ERROR);
     }
-    function __destruct(){
-        if(method_exists($this, '_after')){
-            $this -> _after($this->ctx);
-        }
+    array_shift($pieces);
+    $path = str_replace('.', '', implode("/", $pieces)); //trim . for safe;
+    if (strpos($className, 'PHPec\\') === 0) { //框架类
+        $mFile   = sprintf('%s/%s/%s.php', __DIR__ , $path, $class);
+    } else {
+         $mFile   = sprintf('%s/%s/%s.php', APP_PATH , $path, $class);
     }
-}
+
+    if (file_exists($mFile)) {
+        require_once $mFile;
+    } else {
+        trigger_error("autoload {$className} fail -- file not found", E_USER_ERROR);
+    }
+});
 ?>

@@ -1,78 +1,43 @@
 PHPec开发框架  [![License](https://img.shields.io/badge/license-MIT-blue.svg)](http://opensource.org/licenses/MIT)
 -------------
 
-一个极简的PHP WEB开发框架。
+一个极简的PHP WEB开发框架。 [点此查看详细手册](doc/manual.md)
 
-PHPec，即php easy, 这是多年前写过的一个MVC框架的名字。为了纪念，故继续取该名字，目标是做出一个易用、易学、易扩展的轻量WEB开发框架。
+PHPec，读作php easy, 这是多年前写过的一个MVC框架的名字。为了纪念，故继续取该名字，目标是做出一个易用、易学、易扩展的轻量WEB开发框架。
 
 **require**: PHP5.5+ || PHP7
 
 > 本项目使用dev分支作为开发分支，阶段可用版本在master分支，并以版本号打tag。
 
-## 特性说明
 
-这是一个用php实现的模仿nodejs的koa经典的“洋葱模型”的WEB开发框架,核心代码非常的少，使用中间件模式，同时也提供了WEB开发必须的模块，比如路由和ORM，给开发者有足够的扩展自由度的同时也能开箱即用。
+## 特性
+
+- 仿koa经典的“洋葱模型”中间件模式。
 
 下面是其执行流程示意图
 
-![flow](https://raw.githubusercontent.com/tim1020/PHPec/master/img/flow.png)
+![flow](https://raw.githubusercontent.com/tim1020/PHPec/master/doc/flow.png)
 
-## 约定
+- 内置自动规则路由，支持QUERY_STRING,PATHINFO及RESTFUL方式
 
-phpec使用约定大于配置为主要原则
+- 一般组件支持自动依赖注入
 
-### 项目目录结构
-
-框架会在**middleware**目录搜索中间件，在**controller**搜索控制器
-
-```
-confing.php //项目配置 
-index.php   //项目入口
-middleware/ //中间件目录
-controller/ //控制器目录
-logs/       //日志目录
-vendor/     //第三方库，包括PHPec
-```
-
-### 常量及参数定义
-
-APP_PATH:  开发者需在引入PHPec前定义项目的根目录，比如在入口文件中 define('APP_PATH',__DIR__);
-
-用于$app -> use()或URI中的参数大小写敏感。
-
-### 文件名与类名/函数名影射
-
-框架在搜索中间件和控制器时，根椐给定的类名或方法名自动搜索相应的文件，规则是：
-
-- 文件名使用snake_case.php格式，如: user_profile.php
-- 类名/方法名使用CamelCase格式，如: UserProfile
-
-如: $app -> use('MyRouter')，表示在APP_PATH.'/middleware/'下引入 my_router.php文件，并加载其中的名为MyRouter的类为函数
-
-### Resource和action命名
-
-resource和action，是路由中的path(/Resource/action)或querystring(?c=Resource&a=action)解析出来的内容，它们的命名规则是：
-
-resource同时也是类名，以大写字母开头，只能由字母和数字组成
-action同时是方法名，以小写字母开头，只能由字母和数字组成.
-
-### 命名空间
-
-如果需要在middleware和controller中使用命名空间，需要将命名空间名称定义为 NS_MIDDLE和NS_CONTROL常量
-
-```
-//config.php
-defined('NS_MIDDLE','middleware');
-
-//m1.php
-namespace middleware;
-function M1($ctx){
-
-}
-```
+- 提供WEB开发基本模块(逐步添加完善)
 
 
-## 使用说明
+### 中间件
+
+中间件为请求处理的必经路径，通常负责处理输入输出、权限认证等。
+
+### 一般组件
+
+一般组件定义为实现一个功能的普通类，可以在需要时被自动注入，常用于逻辑处理、数据处理等。
+
+### $ctx
+
+$ctx为贯穿整个请求流程的上下文对象，即App对象本身。开发者可以在中间件或控制器方法中使用$ctx来读取或设置一些属性。
+
+## 开始使用
 
 可手工下载或使用composer下载本框架。框架example目录下有一个完整的简单使用例子，包括如何编写中间件及控制器。
 
@@ -81,83 +46,96 @@ function M1($ctx){
 
 ```
 //main index.php
+define('APP_PATH', __DIR__.'/app');
+define('APP_NS', 'myapp');  //项目根命名空间
 
-require __DIR__.'/config.php';
 require __DIR__.'/vendor/autoload.php'; //composer autoload
 //require __DIR__.'/phpec/src/App.php'; //自行下载要引用src下的App.php
 
 $app = new \PHPec\App();
 //加载中间件
 $app->use(function($ctx){
-	//do something
-	$ctx -> next();
-	//do something
+    $ctx -> body = 'hello';
+    $ctx -> next();
+    $ctx -> body .= ' phpec';
 });
-$app->use(['M1','M2']); //用数组传入多个中间件
+//$app->use(['M1','M2']); //用数组传入多个中间件
 $app->use(); //传递空参数时，所有后面的中间件被忽略，包括内置的Router;
-$app->use('M3','param1'); //如果M3是一个Class，可以接受第二个参数作为其构造函数的参数
+//$app->use('M3','param1'); //如果M3是一个Class，可以接受第二个参数作为其构造函数的参数
 
 $app->run();
 ```
 
+## 约定
 
-### 中间件
+PHPec使用约定大于配置为原则，在使用时，需注意遵守。
 
-phpec目前支持多种方式使用中间件, 请参考 [如何编写及使用中间件](doc/middleware.md)
-
-框架内置了WEB开发常用到的中间件:
-
-1. [自动路由](doc/router.md)
-
-2. [PDO ORM](doc/pdo_orm.md)
-
-3. [Mongo ORM](doc/mongo_orm.md)
-
-4. [Logger](doc/logger.md)
-
-5. [JWT](doc/jwt.md)
-
-### $ctx
-
-框架使用PHPec对象本身作为$ctx，并使用魔术函数来设置和读取PHPec未定义属性，开发者可以在中间件中使用 $ctx -> xxx来设置或读取，如：
-
-$ctx -> status = 404         //设置http response code为404
-
-$ctx -> body = 'hello world' //设置response的body内容为hello world
-
-你还可以用$ctx来访问其它自定义的属性，或绑定一些方法。
-
-$ctx -> myVar = 'xxxx';
-
-$ctx -> myObj = new XX();
-
-**需要注意的是：**
-
-1. $tcx是全局生效的，意味着你在任一处设置$ctx的值后，在其它地方也可以通过$ctx参数获取或改写。
-
-2. 在对$ctx赋值时，后面执行的赋值会覆盖前面的（以下划线开头的变量，只允许设置一次，重新设置时会报Warning，比如 ```$ctx -> _var1 = 123```）
-
-3. 在中间件或路由的方法中，$ctx只是PHPec对象标识的指向，也即是说，你在路由或中间件中修改了$ctx本身（事实上你并没有理由这么做），并不会影响其它的中间件。
-
-4. 数组只能一次设置（如果是对象，则可以先赋值后再设置）
-```
-$ctx -> ids = [1,2,3,4]; //ok
-$ctx -> ids = [];
-$ctx -> ids[0] = 1; // not ok
-$ctx -> obj = new stdClass;
-$ctx -> obj -> id = 12; //ok
+### 项目目录结构
 
 ```
+APP_SRC/
+    app/                //应用代码
+        config/             //配置文件目录
+        controller/         //控制器目录
+        middleware/         //中间件目录
+        service/            //service class目录，默认被自动注入的查找目录
+        model/              //数据模型
+        interfaces/         //接口定义
+    runtime/            //运行时存储目录，包括log和cache，需可以权限
+        cache/
+        log/
+    vendor/             //composer安装的库，包括PHPec
+    readme.md 
+    composer.json 
+    index.php           //主入口，你也可以将此文件放进public目录
+```
 
-5. $ctx -> req
+### 常量
 
-PHPec默认地将请求相关的内容绑定在$ctx -> req对象，包括 get,post,cookie,header，比如，可以用$ctx -> req -> post['user']来获得$_POST['user']
+APP_PATH:  开发者需在引入PHPec前定义项目的根目录(指向项目代码的app目录)，比如在入口文件中 define('APP_PATH', \__DIR\__.'/app');
 
-6. 提供 $ctx -> setHeader($k,$v) 设置响应的header
+APP_NS:  项目根命名空间
 
-7. 提供 $ctx -> res($body,$status) 来设置输出内容和状态码
+### 命名空间
 
-你也可以通过设置 $ctx -> body 的值来设置响应的内容
+1. 使用APP_NS常量定义项目根命名空间，如 ```define('APP_NS', 'myapp')```
+
+2. 控制器、中间件、service的命名空间固定为其目录名，可以在目录中添加多层目录来表示多层的命名空间。
+
+```
+//注意要加上前缀
+
+//controller命名空间
+namespace myapp\controller;
+
+//controller目录的user目录下的控制器类的命名空间
+namespace myapp\controller\user;
+
+//middleware命名空间
+namespace myapp\middleware;
+
+//service命名空间
+namespace myapp\service;
+```
+
+### 配置文件 
+
+- 配置文件保存在app/config目录
+
+- 使用app.php作为主配置文件，如有多个配置，需将其它配置都读入到app.php进行合并
+
+- 配置文件使用 ```return 数组```来返回配置
+
+```
+//app.php
+return [
+    'log_path' => '/tmp';
+];
+```
+
+### 文件名与类名
+
+文件名和类名使用CamelCase约束，类名与文件名一致(不包括后缀)，文件所在目录与命名空间对应。
 
 
 ## License
