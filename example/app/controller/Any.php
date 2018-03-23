@@ -1,5 +1,5 @@
 <?php
-namespace example\controller;
+namespace myapp\controller;
 
 //默认控制器
 class Any {

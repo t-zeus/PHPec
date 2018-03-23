@@ -1,5 +1,5 @@
 <?php
-namespace example\middleware;
+namespace myapp\middleware;
 
 class M1 implements \PHPec\interfaces\Middleware
 {

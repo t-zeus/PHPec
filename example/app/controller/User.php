@@ -1,5 +1,5 @@
 <?php
-namespace example\controller;
+namespace myapp\controller;
 
 class User {
     //for index.php?c=User&a=show
