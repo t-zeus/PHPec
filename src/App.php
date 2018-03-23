@@ -1,7 +1,7 @@
 <?php
 namespace PHPec;
 
-require __DIR__.'/helper.php';
+//require __DIR__.'/helper.php';
 
 /**
  * PHPec A easy,simple and Lightweight php web framework
