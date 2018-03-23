@@ -20,7 +20,7 @@ PHPec，读作php easy, 这是多年前写过的一个MVC框架的名字。为�
 
 - 内置自动规则路由，支持QUERY_STRING,PATHINFO及RESTFUL方式
 
-- 组件和服务支持自动依赖注入
+- 支持自动依赖注入
 
 - 提供WEB开发基本模块(待逐步添加完善)
 
@@ -31,40 +31,25 @@ PHPec，读作php easy, 这是多年前写过的一个MVC框架的名字。为�
 
 ### 组件
 
-组件定义为实现一个功能的普通类，可以在需要时被自动注入，常用于逻辑处理、数据处理等。
+组件定义为实现一个功能的普通模块类，可以在需要时被自动注入，常用于逻辑处理、数据处理等。
 
 ### $ctx
 
 $ctx为贯穿整个请求流程的上下文对象，即App对象本身。开发者可以在中间件或控制器方法中使用$ctx来读取或设置一些属性。
 
-## 开始使用
+## 快速开始
 
-可手工或使用composer下载本框架。框架example目录下有一个完整的简单使用例子，演示了如何编写中间件及控制器。
+PHPec使用composer管理依赖，请先安装composer（安装及使用请参考 [composer中文网](https://docs.phpcomposer.com/) ) 。
 
-> example同样作为unittest的mock程序，如果你更改了其中内容，可能会导致test fail。
+- 创建一个空目录作为你的项目目录并进入此目录
 
+- 执行 ```composer require tim1020/phpec```获取 phpec及其依赖。
 
-```
-//main index.php
-define('APP_PATH', __DIR__.'/app');
-define('APP_NS', 'myapp');  //项目根命名空间
+- 将 vendor/tim1020/phpec/example/* 复制到项目目录
 
-require __DIR__.'/vendor/autoload.php'; //composer autoload
-//require __DIR__.'/phpec/src/App.php'; //自行下载要引用src下的App.php
+- 配置web server，将document_root指向 public/目录
 
-$app = new \PHPec\App();
-//加载中间件
-$app->use(function($ctx){
-    $ctx -> body = 'hello';
-    $ctx -> next();
-    $ctx -> body .= ' phpec';
-});
-//$app->use(['M1','M2']); //用数组传入多个中间件
-$app->use(); //传递空参数时，所有后面的中间件被忽略，包括内置的Router;
-//$app->use('M3','param1'); //如果M3是一个Class，可以接受第二个参数作为其构造函数的参数
-
-$app->run();
-```
+如果一切正常，就可以在浏览器中访问框架自带例子了
 
 ## 约定
 
@@ -85,20 +70,32 @@ APP_SRC/
         cache/
         log/
     vendor/             //composer安装的库，包括PHPec
-    readme.md 
+    public/             //web访问目录，存放入口文件及其它静态文件
+        index.php       //入口文件
     composer.json 
-    index.php           //主入口，你也可以将此文件放进public目录
 ```
 
 ### 常量
 
-APP_PATH:  开发者需在引入PHPec前定义项目的根目录(指向项目代码的app目录)，比如在入口文件中 define('APP_PATH', \__DIR\__.'/app');
+APP_PATH:  需在引入PHPec前定义项目的根目录(指向项目代码的app目录)
 
 APP_NS:  项目根命名空间
 
-### 命名空间
+### 命名空间和autoload
 
 1. 使用APP_NS常量定义项目根命名空间，如 ```define('APP_NS', 'myapp')```
+
+2. 在项目的composer.json中添加psr-4格式的autoload，如:
+
+```
+"autoload":{
+    "psr-4":{
+        "myapp\\":"app/"
+    }
+}
+```
+
+myapp为定义的项目根命名空间,这样在框架加载控制器或中间件及自动注入时，能找到相应的目标。
 
 2. 控制器、中间件、service的命名空间固定为其目录名，可以在目录中添加多层目录来表示多层的命名空间。
 
