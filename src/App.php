@@ -1,12 +1,9 @@
 <?php
 namespace PHPec;
 
-//require __DIR__.'/helper.php';
-
 /**
  * PHPec A easy,simple and Lightweight php web framework
  * 
- * @github https://github.com/tim1020/PHPec
  * @Author Tim <tim8670@gmail.com>
  */
 final class App
@@ -84,6 +81,10 @@ final class App
     public function __get($k)
     {
         return isset($this -> ctx[$k]) ? $this -> ctx[$k] : null;
+    }
+    public function __isset($k)
+    {
+        return isset($this -> ctx[$k]);
     }
     public function __toString()
     {
