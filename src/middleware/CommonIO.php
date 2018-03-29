@@ -85,9 +85,7 @@ final class CommonIO implements \PHPec\interfaces\Middleware
                     $contentType = "application/json;charset=utf-8";
                     $ctx -> body = json_encode($ctx -> body);
                 }
-            } else {
-                $ctx -> body =  $code[$ctx -> status];
-            }
+            } 
             if (empty($ctx -> resHeaders['Content-Type'])) {
                 $ctx -> setHeader('Content-Type', $contentType);
             }
