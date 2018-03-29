@@ -13,7 +13,8 @@ Trait DITrait
         'Logger' => '\Psr\Log\LoggerInterface',
         'Config' => '\PHPec\interfaces\Config'
     ];
-    function __get($k){
+    public function __get($k)
+    {
         $objs = Container::getInstance();
         if (isset( $objs -> $k)) {
             return  $objs -> $k;
@@ -35,18 +36,24 @@ Trait DITrait
         }
         if (preg_match('/^[A-Z]/', $k)) {
             $class_map = $objs -> Config -> get('container_bind');
+            $interface = null;
             if (!empty($class_map[$k])) { //有绑定, interface => classImpl
                 $class  = $class_map[$k];
                 $interface = APP_NS."\\interfaces\\".$k;
             } else {
+                if (substr($k, -5) == 'Model') { //*Model
+                    $class = '\\PHPec\\component\\PDO';
+                    $table = strtolower(substr($k, 0, -5));
+                    $obj = new $class($table); //todo:SCHEMA
+                    $objs -> $k = $obj;
+                    return $obj;
+                }
                 $file = APP_PATH. "/service/{$k}.php";
                 if (file_exists($file)) {
                     require $file;
                     $class = APP_NS .'\\service\\'.$k;
-                    $interface = null; //外部类不限制
                 } else {
                     $class = '\\PHPec\\component\\'.$k;
-                    $interface = '\\PHPec\\interfaces\\'.$k;
                 }
             }
             if (isset($this -> native[$k])) {
