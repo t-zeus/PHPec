@@ -10,7 +10,7 @@ namespace PHPec;
 Trait DITrait
 {   
     private $native = [
-        'Logger' => '\Psr\Log\LoggerInterface',
+        'Logger' => '\PHPec\interfaces\Logger',
         'Config' => '\PHPec\interfaces\Config'
     ];
     public function __get($k)

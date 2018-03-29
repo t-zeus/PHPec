@@ -8,15 +8,8 @@
         "name":"Tim",
         "email":"tim8670@gmail.com"
     }],
-    "repositories": [
-        {
-            "type": "git",
-            "url": "https://github.com/tim1020/PHPec"
-        }
-    ],
     "require":{
-        "php":"^5.5 || ^7.0",
-        "psr/log": "^1.0"
+        "php":"^5.5 || ^7.0"
     },
     "require-dev":{
         "phpunit/phpunit":"^6.5.5"

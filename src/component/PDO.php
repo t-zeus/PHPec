@@ -10,7 +10,7 @@ class PDO {
 
     public function __construct($table = '', $schema = [])
     {
-        $this -> Logger -> debug('PDO __construct, table='.$table);
+        $this -> Logger -> debug('PDO __construct, table=%s', $table);
         $this -> table  = $table;
         $this -> schema = $schema;
         //todo: schema check
@@ -18,7 +18,7 @@ class PDO {
 
     public function query($sql, $param = null)
     {
-        $this -> Logger -> debug('PDO query,sql='.$sql);
+        $this -> Logger -> debug('PDO query,sql=%s', $sql);
         $ph = substr_count($sql, "?");
         $params = [];
         if ($ph > 0 && $param !== null) {
