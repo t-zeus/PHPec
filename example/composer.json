@@ -1,0 +1,10 @@
+{
+    "require": {
+        "tim1020/phpec":"dev-dev"
+    },
+    "autoload":{
+        "psr-4":{
+            "myapp\\":"app/"
+        }
+    }
+}
