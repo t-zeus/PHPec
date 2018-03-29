@@ -23,13 +23,14 @@ class Logger implements \Psr\Log\LoggerInterface
     {
         if (!isset($this -> levels[$level])) { //throw exception
             throw new \Psr\Log\InvalidArgumentException();
-        } 
-        $log_level = $this -> Config -> get('log_level', 1 << 8 -1);
+        }
+        $log = $this -> Config -> get('log');
+        $log_level = isset($log['level']) ? $log['level'] ? 1 << 8 - 1; 
+        $log_path  = isset($log['path']) ? $log['path'] : APP_PATH. '/../runtime/log';
         if ($this -> levels[$level] & $log_level) {
-            $path = $this -> Config -> get('log_path', APP_PATH.'/../runtime/log');
             $file = $level."_".date('ymd');
             $msg  = sprintf("%s %s\n", date('H:i:s'), $message);
-            file_put_contents("$path/$file", $msg, FILE_APPEND);
+            file_put_contents("$log_path/$file", $msg, FILE_APPEND);
         }
     }
 }
