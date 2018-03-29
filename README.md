@@ -3,7 +3,7 @@ PHPec开发框架  [![License](https://img.shields.io/badge/license-MIT-blue.svg
 
 一个极简的PHP WEB开发框架。 [点此查看详细手册](doc/manual.md)
 
-PHPec，读作php easy, 这是多年前写过的一个MVC框架的名字。为了纪念，故继续取该名字，目标是做出一个易用、易学、易扩展的轻量WEB开发框架。
+PHPec，读作php easy, 目标是做出一个易用、易学、易扩展的轻量WEB开发框架。
 
 **require**: PHP5.5+ || PHP7
 
@@ -14,28 +14,23 @@ PHPec，读作php easy, 这是多年前写过的一个MVC框架的名字。为�
 
 - 仿koa经典的“洋葱模型”中间件模式。
 
-下面是其执行流程示意图
-
-![flow](https://raw.githubusercontent.com/tim1020/PHPec/dev/doc/flow.png)
-
 - 内置自动规则路由，支持QUERY_STRING,PATHINFO及RESTFUL方式
 
 - 支持自动依赖注入
 
 - 提供WEB开发基本模块(待逐步添加完善)
 
-
 ### 中间件
 
-中间件为请求处理的必经路径，每个中间件为一进一出两个方法，采用先进后出方式。通常负责处理输入输出、权限认证等。
+中间件为每一请求都必经路径，每个中间件为一进一出两个方法，采用先进后出方式。通常用来处理输入输出转换、权限认证、路由分派等。
 
-### 组件
+### 服务组件
 
-组件定义为实现一个功能的普通模块类，可以在需要时被自动注入，常用于逻辑处理、数据处理等。
+服务组件定义为完成一个单一功能或提供一个服务的普通模块类，可以在需要时被自动注入，常用于商业逻辑处理、数据处理等。
 
 ### $ctx
 
-$ctx为贯穿整个请求流程的上下文对象，即App对象本身。开发者可以在中间件或控制器方法中使用$ctx来读取或设置一些属性。
+$ctx为贯穿整个请求流程的上下文对象，亦即App对象本身。开发者可以在中间件或控制器方法中使用$ctx来读取或设置一些全局属性。
 
 ## 快速开始
 
@@ -46,6 +41,8 @@ PHPec使用composer管理依赖，请先安装composer（安装及使用请参�
 - 执行 ```composer require tim1020/phpec```获取 phpec及其依赖。
 
 - 将 vendor/tim1020/phpec/example/* 复制到项目目录
+
+- 修改app/config/app.php的相应配置
 
 - 配置web server，将document_root指向 public/目录
 
@@ -61,17 +58,16 @@ PHPec使用约定大于配置为原则，在使用时，需注意遵守。
 APP_SRC/
     app/                //应用代码
         config/             //配置文件目录
+            app.php         //主配置文件
         controller/         //控制器目录
         middleware/         //中间件目录
-        service/            //service class目录，默认被自动注入的查找目录
-        model/              //数据模型
-        interfaces/         //接口定义
-    runtime/            //运行时存储目录，包括log和cache，需可以权限
+        service/            //服务组件目录，自动注入的查找目录
+    runtime/            //运行时存储目录，包括log和cache，需可写权限
         cache/
         log/
     vendor/             //composer安装的库，包括PHPec
     public/             //web访问目录，存放入口文件及其它静态文件
-        index.php       //入口文件
+        index.php           //入口文件
     composer.json 
 ```
 
@@ -133,6 +129,8 @@ return [
 ### 文件名与类名
 
 文件名和类名使用CamelCase约束，类名与文件名一致(不包括后缀)，文件所在目录与命名空间对应。
+
+模板文件命名使用全小写，并以**“.tpl”*结尾。
 
 
 ## License
