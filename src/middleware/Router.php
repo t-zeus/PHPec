@@ -56,7 +56,7 @@ final class Router implements \PHPec\interfaces\Middleware
                 }
             }
         }
-        $ctx -> template = $resource;
+        $ctx -> template = strtolower($resource.'/'.$action);
         //for autoload
         $resource = APP_NS.'\\controller\\'.str_replace('/','\\',$resource);
         $res = new $resource($ctx);
