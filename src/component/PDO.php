@@ -4,21 +4,21 @@ namespace PHPec\component;
 class PDO {
     private $table  = '';
     private $schema = [];
-    private $dbh     = null;
 
     use \PHPec\DITrait;
 
 
     public function __construct($table = '', $schema = [])
     {
+        $this -> Logger -> debug('PDO __construct, table='.$table);
         $this -> table  = $table;
         $this -> schema = $schema;
-        $this -> dbh    = $this -> PDOConn -> getConn();
         //todo: schema check
     }
 
     public function query($sql, $param = null)
     {
+        $this -> Logger -> debug('PDO query,sql='.$sql);
         $ph = substr_count($sql, "?");
         $params = [];
         if ($ph > 0 && $param !== null) {
@@ -36,7 +36,7 @@ class PDO {
                 } 
             }
         }
-        $stmt = $this -> dbh -> prepare($sql);
+        $stmt = $this -> PDOConn -> prepare($sql);
         foreach ($params as $k => $v) {
             $stmt -> bindParam($k+1, $params[$k], self::_getType($v));
         }
@@ -61,7 +61,7 @@ class PDO {
         $sql = sprintf("insert into `%s` set %s", $this -> table, $d[0]);
         $result = $this -> query($sql, $d[1]);
         if ($result) {
-            return $this -> dbh -> lastInsertId();
+            return $this -> PDOConn -> lastInsertId();
         }
         return false;
     }
@@ -122,12 +122,13 @@ class PDO {
     public function transaction(\Closure $query)
     {
         try {
-            $this -> dbh -> beginTransaction();
+            $this -> PDOConn -> beginTransaction();
             $re = $query($err);
             if ($re === false) throw new \Exception("Transaction fail: ".$err); 
-            return $this -> dbh -> commit();
+            return $this -> PDOConn -> commit();
         } catch(\Exception $ex) {
-            $this -> dbh -> rollback();
+            $this -> PDOConn -> rollback();
+            $this -> Logger -> error($ex -> getMessage());
             return false;
         }
     }
