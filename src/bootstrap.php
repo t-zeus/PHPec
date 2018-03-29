@@ -1,6 +1,6 @@
 <?php
-//启动入口
-//辅助函数,定义一些通用处理
+//启动入口(composer autoload)
+
 defined('APP_PATH')  || exit('APP_PATH not defined');
 defined('APP_NS')  || define('APP_NS', '');
 
@@ -14,6 +14,3 @@ set_error_handler(function($errno, $errstr, $errfile, $errline){
     }
     return false;
 });
-
-
-require __DIR__.'/App.php';
