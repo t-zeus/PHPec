@@ -1,7 +1,6 @@
 {
     "require": {
-        "tim1020/phpec":"dev-dev",
-		"psr/log": "^1.0"
+        "tim1020/phpec":"dev-dev"
     },
     "autoload":{
         "psr-4":{
