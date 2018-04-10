@@ -60,6 +60,7 @@ final class Router implements \PHPec\interfaces\Middleware
         //for autoload
         $resource = APP_NS.'\\controller\\'.str_replace('/','\\',$resource);
         $res = new $resource($ctx);
+        if (!empty($res -> halt)) return;
         if (!method_exists($res, $action)) $action = self::DEFAULT_ACTION;
         if ( method_exists($res, $action)) {
             $tpl = $res -> $action($ctx);

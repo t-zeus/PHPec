@@ -3,6 +3,7 @@ namespace PHPec;
 
 class BaseControl
 {
+    public $halt = false;
     function __construct($ctx)
     {
         $this->ctx = $ctx;
