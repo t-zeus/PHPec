@@ -3,10 +3,10 @@ namespace PHPec\middleware;
 
 class ViewRender implements \PHPec\interfaces\Middleware
 {
-    public function begin($ctx)
+    public function enter($ctx)
     {
     }
-    public function end($ctx)
+    public function leave($ctx)
     {
         if (!empty($ctx -> body) && !empty($ctx -> template)) {
             $tpl = str_replace('.', '', $ctx -> template);

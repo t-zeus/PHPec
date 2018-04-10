@@ -32,9 +32,9 @@ final class App
         if (!$m) return;
         $this -> mGenerator -> next();
         if ($m instanceof interfaces\Middleware) {
-            $r = $m -> begin($this);
-            if (false !== $r) $this -> next(); //do next when begin return not false;
-            $m -> end($this);
+            $r = $m -> enter($this);
+            if (false !== $r) $this -> next(); //do next when enter return not false;
+            $m -> leave($this);
         } else {
             $m($this);
         }

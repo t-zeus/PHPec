@@ -10,7 +10,7 @@ final class Router implements \PHPec\interfaces\Middleware
     const ALL_TYPES      = 'PATHINFO, QUERY_STRING, RESTFUL';
     const ALL_METHODS    = 'GET, POST, PUT, DELETE, OPTIONS';
     
-    public function begin($ctx)
+    public function enter($ctx)
     {   
         $type    = $this -> Config -> get('route_type', self::DEFAULT_TYPE);
         $methods = $this -> Config -> get('allowed_method', self::ALL_METHODS);
@@ -71,7 +71,7 @@ final class Router implements \PHPec\interfaces\Middleware
        	}
     }
 
-    function end($ctx)
+    function leave($ctx)
     {
         //do nothing
     }

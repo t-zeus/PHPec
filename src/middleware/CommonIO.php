@@ -17,7 +17,7 @@ if (!function_exists('getallheaders')) {
 final class CommonIO implements \PHPec\interfaces\Middleware
 {
     //Input handler
-    public function begin($ctx)
+    public function enter($ctx)
     {
         $ctx -> method    = isset($_SERVER['REQUEST_METHOD']) ? strtoupper($_SERVER['REQUEST_METHOD']) :'GET';
         $ctx -> pathinfo  = isset($_SERVER['PATH_INFO']) ? $_SERVER['PATH_INFO'] : null;
@@ -30,7 +30,7 @@ final class CommonIO implements \PHPec\interfaces\Middleware
         //unset($_POST,$_GET,$_REQUEST,$_SERVER);
     }
     //Output handler
-    public function end($ctx)
+    public function leave($ctx)
     {
         $code = [
             100 => "HTTP/1.1 100 Continue",
