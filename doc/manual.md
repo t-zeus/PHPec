@@ -7,6 +7,15 @@ PHPec使用手册
 
 PHPec的中间件与KOA的类似，每一次请求都会依次经过每一声明使用的中间件的enter方法处理，再使用后进先出的方式经过leave方法的处理。
 
+比如：
+
+```
+$app -> use('M1');
+$app -> use('M2');
+```
+以上的调用，方法执行顺序是： M1->enter(), M2 -> enter(), M2 -> leave(), M2 -> leave()
+
+
 ### 如何使用中间件
 
 要使用中间件，需要在入口文件中使用```$app -> use```方法来声明,包括以下几种方式：
@@ -37,12 +46,6 @@ $app -> use('PHPec\ViewRender'); //需指定命名空间
 
 - 自定义中间件
 
-自定义中间件，文件放在APP_PATH的middleware目录下，且必须实现PHPec\Middleware接口，该接口有两个方法：
-
-```
-function enter($ctx); //进入时执行的处理
-function leave($ctx); //离开时执行的处理
-```
 要使用自定义中间件，只需在入口文件中使用中间件名字进行声明即可：
 
 ```
@@ -69,7 +72,7 @@ $app -> use('MiddleName','param');
 
 如果要跳过默认加载的内置Router中间件，可使用```$app -> use(false);```
 
-如果需要在中间件中根椐一定规则跳过后续中间件（如果认证不通过时不执行后续处理），可以在enter方法中```return false``` 
+如果需要在中间件中根椐一定规则跳过后续中间件（如认证不通过时不执行后续处理），可以在enter方法中```return false``` 
 
 使用闭包方式时，直接去掉```$ctx -> next();``` 即可
 
@@ -95,6 +98,36 @@ $app -> use('MiddleName','param');
 该中间件由开发者根椐需要自行手动调用。
 
 ### 编写自定义中间件
+
+编写自定义中间件，需遵守以下规则：
+
+- 文件需放在APP_PATH的middleware目录下，类名、文件名与中间件名称一致
+- 必须实现PHPec\interfaces\Middleware接口
+- 使用“myapp\middleware”命名空间（myapp为项目的根命名空间，由常量NS定义）
+
+以下是一个简单例子：
+
+```
+namespace mapp\middleware;
+class M1 implements \PHPec\interfaces\Middleware
+{
+    use \PHPec\DITrait; //拥有自动依赖注入功能
+
+    public function enter($ctx)
+    {
+        $ctx -> stime = microtime(1);
+        $this -> Logger -> debug('M1 enter');
+    }
+    public function leave($ctx)
+    {
+        $this -> Logger -> debug('M1 leave');
+        $end = microtime(1);
+        $es = $end - $ctx -> stime;
+        $this -> Logger -> event('start=%s,end=%s,es=%s',$ctx -> stime, $end, $es);
+    }
+}
+```
+
 
 ## MVC模式
 
