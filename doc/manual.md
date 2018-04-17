@@ -41,7 +41,7 @@ $app -> use(
 其中CommonIO和ViewRender由框架自动调用，ViewRender和其它待加入的内置中间件，需手工调用，方式是:
 
 ```
-$app -> use('PHPec\ViewRender'); //需指定命名空间
+$app -> use('PHPec\middleware\ViewRender'); //需指定命名空间
 ```
 
 - 自定义中间件
@@ -103,7 +103,7 @@ $app -> use('MiddleName','param');
 
 - 文件需放在APP_PATH的middleware目录下，类名、文件名与中间件名称一致
 - 必须实现PHPec\interfaces\Middleware接口
-- 使用“myapp\middleware”命名空间（myapp为项目的根命名空间，由常量NS定义）
+- 使用“myapp\middleware”命名空间（myapp为项目的根命名空间，由常量APP_NS定义）
 
 以下是一个简单例子：
 
