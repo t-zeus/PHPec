@@ -11,6 +11,19 @@ class Config implements \PHPec\interfaces\Config
     }
     function get($k, $default = null)
     {
-        return isset($this -> conf[$k]) ? $this -> conf[$k] : $default;
+        $ks = explode(".", $k);
+        $data = $this -> conf;
+
+        foreach ($ks as $k) {
+            if (empty($k)) {
+                trigger_error('Config->get Fail: wrong key format', E_USER_ERROR);
+            }
+            if (isset($data[$k])) {
+                $data = $data[$k];
+            } else {
+                return $default;
+            }
+        }
+        return $data;
     }
 }
