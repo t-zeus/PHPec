@@ -14,3 +14,11 @@ set_error_handler(function($errno, $errstr, $errfile, $errline){
     }
     return false;
 });
+
+//Auto Facade Model
+spl_autoload_register(function($class){
+    if (false === strpos($class, '\\')) {
+        $code = "class $class { use \\PHPec\\FacadeTrait;}";
+        return eval($code);
+    }
+});
