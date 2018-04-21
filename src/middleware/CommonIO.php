@@ -22,12 +22,20 @@ final class CommonIO implements \PHPec\interfaces\Middleware
         $ctx -> method    = isset($_SERVER['REQUEST_METHOD']) ? strtoupper($_SERVER['REQUEST_METHOD']) :'GET';
         $ctx -> pathinfo  = isset($_SERVER['PATH_INFO']) ? $_SERVER['PATH_INFO'] : null;
         $ctx -> query_str = isset($_SERVER['QUERY_STRING']) ? $_SERVER['QUERY_STRING'] : '';
-        $ctx -> req = new \stdClass;
-        $ctx -> req -> header = getallheaders();
-        $ctx -> req -> get    = $_GET;
-        $ctx -> req -> post   = $_POST;
-        $ctx -> req -> cookie = $_COOKIE;
-        //unset($_POST,$_GET,$_REQUEST,$_SERVER);
+        
+        $ctx -> _H = getallheaders();
+        $ctx -> _G = $_GET;
+        $ctx -> _P = $_POST;
+        $ctx -> _C = $_COOKIE;
+        
+        $ctx -> req = [
+            'header'    => $ctx -> _H,
+            'get'       => $ctx -> _G,
+            'post'      => $ctx -> _P,
+            'cookie'    => $ctx -> _C
+        ];
+        
+        unset($_POST,$_GET,$_REQUEST,$_SERVER,$_COOKIE);
     }
     //Output handler
     public function leave($ctx)
