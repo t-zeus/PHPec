@@ -22,10 +22,10 @@ final class JWT implements \PHPec\interfaces\Middleware
         if (empty($this -> secret)) { //抛错
             trigger_error("config jwt.secret not set", E_USER_ERROR);
         }
-        if (!$useCookie) { //默认不使用COOKIE传输token，可在配置中设置为cookie方式
-            $token = empty($ctx -> req -> header['Authorization']) ? '' : $ctx -> req -> header['Authorization'];   
+        if ($useCookie) { //默认不使用COOKIE传输token，可在配置中设置为cookie方式
+            $token = empty($ctx -> _C['Authorization']) ? '' : $ctx -> _C['Authorization'];   
         } else {
-            $token = empty($ctx -> req -> cookie['Authorization']) ? '' : $ctx -> req -> cookie['Authorization'];
+            $token = empty($ctx -> _H['Authorization']) ? '' : $ctx -> _H['Authorization'];
         }
         if (!empty($token)) { //verify token
             $result = $this -> _verify($token);
@@ -35,11 +35,11 @@ final class JWT implements \PHPec\interfaces\Middleware
             }
             $ctx -> jwtPayload = $result;
         } else { //token为空，用户密码认证
-            if (empty($ctx -> req -> post['account']) || empty($ctx -> req -> post['password'])) {
+            if (empty($ctx -> _P['account']) || empty($ctx -> _P['password'])) {
                 $ctx -> res('Unauthorized',401);
             } else {
                 //todo: 验证码防止多次重试
-                $result = $this -> Auth -> verify($ctx -> req -> post['account'], $ctx -> req -> post['password']);
+                $result = $this -> Auth -> verify($ctx -> _P['account'], $ctx -> _P['password']);
                 if (false === $result) { //密码验证失败
                     $ctx -> body = '登录失败';
                 } else {
