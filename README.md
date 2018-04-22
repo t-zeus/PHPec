@@ -1,9 +1,9 @@
 PHPec开发框架  [![License](https://img.shields.io/badge/license-MIT-blue.svg)](http://opensource.org/licenses/MIT)
 -------------
 
-一个极简的PHP WEB开发框架。 [点此查看详细手册](doc/manual.md)
+一个极简的PHP WEB后端开发框架。 [点此查看使用手册](doc/manual.md)
 
-PHPec，读作php easy, 目标是做出一个易用、易学、易扩展的轻量WEB开发框架。
+PHPec，读作php easy, 目标是做出一个易用、易学、易扩展的轻量WEBR后端开发框架。
 
 **require**: PHP5.6+ || PHP7
 
@@ -16,21 +16,9 @@ PHPec，读作php easy, 目标是做出一个易用、易学、易扩展的轻�
 - 支持mvc开发模式
 - 内置自动规则路由，支持QUERY_STRING,PATHINFO及RESTFUL方式
 - 支持自动依赖注入
-- 支持PDO操作数据库，自动生成并注入 *Model 对象。
-- 提供WEB开发基本模块(待逐步添加完善)
+- 自动生成基于PDO的Model对象，并支持依赖注入或Facade方式访问
 - 提供足够的扩展性，支持自动定义模板引擎、路由、中间件等。
 
-### 中间件
-
-中间件为每一请求都必经路径，每个中间件为一进一出两个方法，采用先进后出方式。通常用来处理输入输出转换、权限认证、路由分派等。
-
-### 服务组件
-
-服务组件定义为完成一个单一功能或提供一个服务的普通模块类，可以在需要时被自动注入，常用于商业逻辑处理、数据处理等。
-
-### $ctx
-
-$ctx为贯穿整个请求流程的上下文对象，亦即App对象本身。开发者可以在中间件或控制器方法中使用$ctx来读取或设置一些全局属性。
 
 ## 快速开始
 
@@ -51,7 +39,7 @@ define('APP_NS', 'myapp');
 require 'path_to_phpec_src/autoload.php';
 //生成应用，加载中间件，启动应用
 $app = new \PHPec\App();
-$app -> use('PHPec\middleware\ViewRender');
+$app -> use('PHPec\middleware\JWT');
 $app -> run();
 ```
 
@@ -91,7 +79,6 @@ APP_NS:  项目根命名空间
 ### 命名空间、目录和autoload
 
 1. 使用APP_NS常量定义项目根命名空间，如 ```define('APP_NS', 'myapp')```
-
 2. 根命名空间对应项目的app目录
 3. 视图模版放在APP_PATH.'/view/'目录
 4. 控制器、中间件、service的命名空间固定为其目录名，可以在目录中添加多层目录来表示多层的命名空间。
@@ -110,32 +97,11 @@ namespace myapp\service;  //对应APP_PATH.'/service/'
 
 > 如果你使用composer来加载，你可能需要自行在你的项目composer.json文件中加入对项目类的autoload声明。
 
-
-### 配置文件 
-
-- 配置文件保存在APP_PATH/config目录
-
-- 使用app.php作为主配置文件，如有多个配置，需手动将其它配置都读入到app.php进行合并
-
-- 配置文件使用 ```return 数组```来返回配置
-
-```
-//app.php
-return [
-    'log' => [
-        'path' => '/tmp'
-    ],
-    'app_name' => 'phpec demo'
-];
-```
-
 ### 文件名与类名
 
-- 所有的类（包括接口定义），都应该每一个类对应一个文件，类名与文件名都使用CamelCase格式，并一一对应。
+- 一般文件(如函数库、模板)，使用全小写文件名。
+- 类定义和接口定义，应该一个类对应一个文件，类名与文件名对应，并使用CamelCase格式。
 - 文件所在目录与命名空间对应。
-- 其它类型的文件，如函数库、模板，使用全小写的文件名。
-- 模板文件以** “.tpl” ** 结尾。
-
 
 ## License
 
