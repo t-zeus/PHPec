@@ -35,7 +35,7 @@ final class CommonIO implements \PHPec\interfaces\Middleware
             'cookie'    => $ctx -> _C
         ];
         
-        unset($_POST,$_GET,$_REQUEST,$_SERVER,$_COOKIE);
+        unset($_POST,$_GET,$_REQUEST,$_SERVER); //$_COOKIE和$_SESSION保留
     }
     //Output handler
     public function leave($ctx)
