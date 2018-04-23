@@ -3,7 +3,7 @@ PHPec开发框架  [![License](https://img.shields.io/badge/license-MIT-blue.svg
 
 一个极简的PHP WEB后端开发框架。 [点此查看使用手册](doc/manual.md)
 
-PHPec，读作php easy, 目标是做出一个易用、易学、易扩展的轻量WEBR后端开发框架。
+PHPec，读作php easy, 目标是做出一个易用、易学、易扩展的轻量WEB后端开发框架。
 
 **require**: PHP5.6+ || PHP7
 
@@ -17,6 +17,7 @@ PHPec，读作php easy, 目标是做出一个易用、易学、易扩展的轻�
 - 内置自动规则路由，支持QUERY_STRING,PATHINFO及RESTFUL方式
 - 支持自动依赖注入
 - 自动生成基于PDO的Model对象，并支持依赖注入或Facade方式访问
+- 内置JWT和基本session认证
 - 提供足够的扩展性，支持自动定义模板引擎、路由、中间件等。
 
 
@@ -50,25 +51,6 @@ $app -> run();
 ## 约定
 
 PHPec使用约定大于配置为原则，在使用时，需注意遵守。
-
-### 项目目录结构
-
-```
-APP_SRC/
-    app/                //应用代码
-        config/             //配置文件目录
-            app.php         //主配置文件
-        controller/         //控制器目录
-        middleware/         //中间件目录
-        service/            //服务组件目录，自动注入的查找目录
-    runtime/            //运行时存储目录，包括log和cache，需可写权限
-        cache/
-        log/
-    vendor/             //composer安装的库，包括PHPec
-    public/             //web访问目录，存放入口文件及其它静态文件
-        index.php           //入口文件
-    composer.json 
-```
 
 ### 常量
 
