@@ -24,7 +24,7 @@ phpec\
 
 ```
 APP_SRC/
-    app/                //应用代码
+    app/                //应用代码(对应APP_PATH)
         config/             //配置文件目录
             app.php         //主配置文件
         controller/         //控制器目录
@@ -41,9 +41,9 @@ APP_SRC/
 
 ## 项目配置
 
-框架提供了一个Config组件进行配置项目的读取，你也可以自定义Config服务来进行改写读取方式（比如修改为指定的mc服务器来读取）。Config可以通过DITrait来自动注入到相应的中间件或控制器、其它服务组件。
+框架提供了一个Config组件进行配置项目的读取，你也可以自定义Config服务来进行改写读取方式（比如修改为指定的mc服务器来读取）。Config可以通过PHPec\DITrait来自动注入到相应的中间件、控制器或其它服务组件。
 
-> 关于自定注入、组件或自定义服务的介绍请参考后面的内容。
+> 关于自动依赖注入、组件或自定义服务的介绍请参考后面的内容。
 
 内置的Config组件，约定的配置文件为 APP_PATH/config/app.php，并期望该文件返回一个多维数组作为配置项目：
 
@@ -87,10 +87,12 @@ $this -> Config -> get("log.path"); //读取log字段下的path，可支持多�
 PHPec的中间件与KOA的类似，每一次请求都会依次经过每一声明使用的中间件的enter方法处理，再使用后进先出的方式经过leave方法的处理。
 
 比如：
+
 ```
 $app -> use('M1');
 $app -> use('M2');
 ```
+
 以上的调用，方法执行顺序是： M1->enter(), M2 -> enter(), M2 -> leave(), M2 -> leave()
 
 ### 如何使用中间件
@@ -113,7 +115,7 @@ $app -> use(
 
 - 内置中间件
 
-框架目前内置了几个基础中间件，包括CommonIO、Router、JWT、ViewRender。
+框架目前内置了几个基础中间件，包括CommonIO、Router、JWT、SessionAuth、ViewRender。
 
 其中CommonIO和Router由框架自动调用，其它内置中间件在需要时由开发者手工调用，方式是:
 
@@ -185,16 +187,31 @@ $ctx -> _G 是$_GET的只读影射，用以保存原始的$_GET请求参数。�
 
 + JWT
 
-该中间件提供基于JWT的请求认证方案，关于JWT的介绍，请自行上网搜索，PHPec的JWT中间件处理流程如下：
+该中间件提供基于JWT的请求认证方案，关于JWT的介绍，请自行上网搜索。
 
-a. 请求到达时，检查是否带有正确的token，如果没有或者token验证不通过，返回401，验证通过则继续后续处理。
+PHPec的JWT中间件处理流程如下：
 
-b. 请求没有token，且使用带有account和password参数的post方式请求，表示进行授权请求，授权请求成功后，会生成token，并返回。
+a. 请求到达时，如果带有token，且验证通过，直接将token中解释得到payload设置到```$ctx -> jwtPayload```，然后继续后续处理。
+
+b. 如果token验证失败，或者请求没有token，或者认证请求验证不通过，处理结果会设置在$ctx->body中，如果认证通过，```$ctx -> body = {"result" => "Unauthorized"}```,失败时```$ctx->body = {"resut"=>"Unauthorized","error" => $msg}```, 开发者可根椐项目需要，使用输出处理的中间件处理后再返回给客户端。
+
+c. 客户端发起认证请求，约定使用POST方式，且带有account和password参数，表示进行授权请求，授权请求成功后，会生成token，并返回。
 
 > 处理授权请求时，框架通过```$this -> Auth -> verify($account, $password)```方法来判断授权是否通过，框架本身不提供Auth组件的实现，开发者需要自行根椐\PHPec\intervaces\Auth接口实现一个Auth组件。
 
-
 > PHPec内置的JWT支持标准的使用header方式传递token，也支持使用cookie方式传递。默认为header方式，要使用cookie方式，只需在配置中加入 jwt['use_cookie'] => true即可。
+
++ SessionAuth
+
+该中间件提供基于会话的基本认证。
+
+当请求中，能获取到 $_SESSION['user'] 时，表示请求已授权通过。
+
+否则, 中间件会返回一个错误信息，客户端需根椐返回信息发起认证请求。
+
+与JWT一样，认证请求，约定使用Post请求方法，并带有account和password参数，中间件调用Auth服务来验证用户身份，验证成功则将Auth返回的结果保存到 $_SESSION['user'],认证失败会返回一个错误。
+
+> SessionAuth在Auth -> verify()方法、未验证通过时的返回值都与JWT一致。不同的只是SessionAuth在判断是否验证和验证通过后写标识时使用的是$_SESSION['user']，而JWT使用名为Authorization的header(或cookie)
 
 + ViewRender
 
