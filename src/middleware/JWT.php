@@ -4,7 +4,7 @@ namespace PHPec\middleware;
 /**
  * Json Web Token处理
  * 
- * @depends Config, User
+ * @depends Config, Auth
  */
 final class JWT implements \PHPec\interfaces\Middleware
 {
@@ -29,19 +29,19 @@ final class JWT implements \PHPec\interfaces\Middleware
         }
         if (!empty($token)) { //verify token
             $result = $this -> _verify($token);
-            if (false === $result) { 
-                $ctx -> res('Unauthorized',401);
-                return false;
+            if (false !== $result) {
+                $ctx -> jwtPayload = $result;
+                return;
             }
-            $ctx -> jwtPayload = $result;
+            $errorMsg = 'token无效';
         } else { //token为空，用户密码认证
             if (empty($ctx -> _P['account']) || empty($ctx -> _P['password'])) {
-                $ctx -> res('Unauthorized',401);
+                $errorMsg = '请输入用户帐号密码登录';
             } else {
                 //todo: 验证码防止多次重试
                 $result = $this -> Auth -> verify($ctx -> _P['account'], $ctx -> _P['password']);
                 if (false === $result) { //密码验证失败
-                    $ctx -> body = '登录失败';
+                    $errorMsg = '帐号或密码错误';
                 } else {
                     $token = $this -> _buildToken($result);
                     if ($useCookie) {
@@ -51,8 +51,14 @@ final class JWT implements \PHPec\interfaces\Middleware
                     }
                 }
             }
-            return false; //skip other middleware
         }
+
+        if (empty($errorMsg)) {
+            $ctx -> body = ['result' => 'ok'];
+        } else {
+            $ctx -> body = ['result' => 'Unauthorized','error' => $errorMsg];
+        }
+        return false;
     }
 
     //生成
