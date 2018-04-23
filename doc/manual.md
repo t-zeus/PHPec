@@ -167,15 +167,15 @@ $app -> use('MiddleName','param');
 
 $ctx -> _G 是$_GET的只读影射，用以保存原始的$_GET请求参数。同样，$ctx -> _H,$ctx -> _P, $ctx -> _C分别对应请求header，$_POST参数，$_COOKIE
 
-另外，提供了$ctx -> req数组，分别保存了上述的请求内容，不同的是该数组可以被修改。
+同时，作为补充，提供了```$ctx -> req```数组，保存了上述的请求内容。
 
 > CommonIO会删除全局变量 $_GET,$_POST,$_REQUEST,$_SERVER
 
 在请求处理完成，最后输出前，会由CommonIO的leave方法处理，该方法主要是对设置的响应头和内容进行解释和封装输出。
 
-    1. 可以通过$ctx -> setHeader() 方式设置响应头
-    2. 通过$ctx -> body = xxx设置响应body
-    3. 直接通过$ctx -> res('body','code')方式输出内容和响应码
+    1. 处理通过$ctx -> setHeader() 方式设置的响应头
+    2. 处理通过$ctx -> status或$ctx -> res('body','code')设置的响应内容和响应码
+    3. 处理通过$ctx -> body = xxx设置响应body，如果body是数组，自动转化成json格式响应。
 
 开发者可以根椐自己项目的需要，定义和使用自己的输入输出处理中间件。比如输入的安全过滤、统一控制输出格式、添加模板处理引擎等。
 
@@ -193,7 +193,7 @@ PHPec的JWT中间件处理流程如下：
 
 a. 请求到达时，如果带有token，且验证通过，直接将token中解释得到payload设置到```$ctx -> jwtPayload```，然后继续后续处理。
 
-b. 如果token验证失败，或者请求没有token，或者认证请求验证不通过，处理结果会设置在$ctx->body中，如果认证通过，```$ctx -> body = {"result" => "Unauthorized"}```,失败时```$ctx->body = {"resut"=>"Unauthorized","error" => $msg}```, 开发者可根椐项目需要，使用输出处理的中间件处理后再返回给客户端。
+b. 如果token验证失败，或者请求没有token，或者认证请求验证不通过，处理结果会设置在$ctx->body中，如果认证通过，```$ctx -> body = {"result" => "ok"}```,失败时```$ctx->body = {"resut"=>"Unauthorized","error" => $msg}```, 开发者可根椐项目需要，使用输出处理的中间件处理后再返回给客户端。
 
 c. 客户端发起认证请求，约定使用POST方式，且带有account和password参数，表示进行授权请求，授权请求成功后，会生成token，并返回。
 
@@ -408,7 +408,7 @@ class Task extends \PHPec\BaseControl
 ```
 
 
-> 如果你使用了自定义路由，请自行根椐路由的处理来处理controller的约束。
+> 如果你使用了自定义路由，请自行根椐路由的约定来处理controller的约束。
 
 ### 模板和视图
 
@@ -464,7 +464,33 @@ class MyService{
 - Auth
 
 ## $ctx 对象
-$ctx是App本身的引用，在中间件和控制器中，都作为上下文对象进行传递。方便在方法中进行相应的数据获取和处理。
+
+$ctx是App本身的引用，在中间件和控制器中的方法中，都作为上下文对象进行传递。方便在方法中进行相应的数据获取和处理。
+
+
+
+1. $ctx 使用了魔术方法__set和__get来设置和读取未定义属性，开发者可以使用$ctx -> xxx来获取或设置一个属性，比如：
+
+```
+$ctx -> name = 'aaa';
+$ctx -> body = 'hello';
+```
+
+2. $ctx是全局引用，即你在某个位置个性了某个属性后，在其它地方也会生效，比如你在中间件的方法中设置了$ctx -> body，在控制器中也能读到。
+
+3. 对$ctx赋值时，后面执行的赋值会覆盖前面的（以下划线开头的变量，只允许设置一次，重新设置时会报Warning，比如 $ctx -> _var1 = 123）
+
+4. 数组只能一次设置（如果是对象，则可以先赋值后再设置）
+
+$ctx -> ids = [1,2,3,4]; //ok
+$ctx -> ids = [];
+$ctx -> ids[0] = 1; // not ok
+$ctx -> obj = new stdClass;
+$ctx -> obj -> id = 12; //ok
+
+5. 提供 $ctx -> setHeader($k,$v) 设置响应的header
+
+6. 提供 $ctx -> res($body, $status = 200) 来设置输出内容和状态码
 
 
 ## session处理
