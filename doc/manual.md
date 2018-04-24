@@ -447,14 +447,41 @@ class MyService{
 
 + 使用前先使用use引入。
 + 使用$this -> Xxx方式注入，Xxx为组件类名，其中只有大写字母开头的才会被自动注入
-+ 扫描顺序为： 项目service目录 > 框架component目录，
-+ 同名时，自定义组件会覆盖内置组件，利用该特性，可以扩展框架内置组件，比如定义一个Logger将日志发送到队列处理。
-+ 由于内置组件在框架中也会经常用到，覆盖内置组件时，需注意必须遵守相应的接口。
++ 扫描顺序为： 项目service目录 > 框架component目录，即service与内置组件同名时，service会覆盖内置组件，利用该特性，可以扩展框架内置组件，比如定义一个Logger将日志发送到队列处理。
++ 由于一些通用的内置组件在框架中也会经常用到，覆盖特定的内置组件时，需注意必须遵守相应的接口，包括Config,Logger,Auth。
 + 使用$this -> XxxModel，会自动生成并注入以xxx为表名的数据Model对象。
-+ 你也可以在配置中侃用container_bind => [interface => impl] 来声明要注入接口的具体实现类（带命名空间）
++ 你也可以在配置中侃用container_bind => [interface => implClass] 来声明要注入接口的具体实现类（带命名空间）
 
 
 ## 编写和使用service
+
+service，一般用于封装业务逻辑，包括一般的业务逻辑，以及对数据模型进行的商业逻辑二次封装。比如，用户注册的service，可能包括写用户帐号表和用户基本信息表。
+
+要编写一个service很简单，请参照以下步骤和例子：
+
+service存放在APP_PATH/service/目录
+
+```
+//APP_PATH/service/Logger.php
+namespace myapp\service;
+
+//演示如何编写服务, Logger因为框架内也需要使用，所以需实现\PHPec\interfaces\Logger接口，以保持一致
+class Loggers implements \PHPec\interfaces\Logger
+{
+    //添加\PHPec\DITrait,可使用自动依赖注入
+    use \PHPec\DITrait;
+    use \PHPec\LoggerTrait;
+     
+    public function log($level, $msg, ...$args)
+    {
+        //具体业务处理，比如按不同的level将log发送到不同的目标
+    }
+}
+
+```
+
+
+> 要使用自定义service，一般使用DITrait的自动注入功能，具体使用见上一节。
 
 ### 接口约定
 
@@ -467,13 +494,23 @@ class MyService{
 
 $ctx是App本身的引用，在中间件和控制器中的方法中，都作为上下文对象进行传递。方便在方法中进行相应的数据获取和处理。
 
+例：
 
+```
+namespace myapp\controller;
+class Task{
+    function show($ctx) {
+        //从Task中获取内容，赋值给$ctx -> body
+        $ctx -> body = $this -> Task -> get("id=1"); 
+    }
+}
+```
 
 1. $ctx 使用了魔术方法__set和__get来设置和读取未定义属性，开发者可以使用$ctx -> xxx来获取或设置一个属性，比如：
 
 ```
 $ctx -> name = 'aaa';
-$ctx -> body = 'hello';
+$ctx -> status = 404;
 ```
 
 2. $ctx是全局引用，即你在某个位置个性了某个属性后，在其它地方也会生效，比如你在中间件的方法中设置了$ctx -> body，在控制器中也能读到。
