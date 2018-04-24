@@ -27,13 +27,30 @@ final class CommonIO implements \PHPec\interfaces\Middleware
         $ctx -> _G = $_GET;
         $ctx -> _P = $_POST;
         $ctx -> _C = $_COOKIE;
-        
-        $ctx -> req = [
-            'header'    => $ctx -> _H,
-            'get'       => $ctx -> _G,
-            'post'      => $ctx -> _P,
-            'cookie'    => $ctx -> _C
-        ];
+
+        $ctx -> get = function($k, $default = null, Callable $filter = null) use($ctx) {
+            $data = isset($ctx -> _G[$k]) ? $ctx -> _G[$k] : $default;
+            if ($filter) {
+                $data = $filter($data);
+            }
+            return $data;
+        };
+
+        $ctx -> post = function($k, $default = null, Callable $filter = null) use($ctx) {
+            $data = isset($ctx -> _P[$k]) ? $ctx -> _P[$k] : $default;
+            if ($filter) {
+                $data = $filter($data);
+            }
+            return $data;
+        };
+
+        $ctx -> cookie = function($k, $default = null, Callable $filter = null) use($ctx) {
+            $data = isset($ctx -> _C[$k]) ? $ctx -> _C[$k] : $default;
+            if ($filter) {
+                $data = $filter($data);
+            }
+            return $data;
+        };
         
         unset($_POST,$_GET,$_REQUEST,$_SERVER); //$_COOKIE和$_SESSION保留
     }
