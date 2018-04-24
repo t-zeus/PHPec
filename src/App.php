@@ -64,7 +64,12 @@ final class App
                 $param = empty($value) ? null : $value[0];
                 $this -> _add($m, $param);
             }
-        }else{
+        } else {
+            if (in_array($method, ['get','post','cookie'])) {
+                if (isset($this -> ctx[$method]) && is_callable($this -> ctx[$method]) ) {
+                    return call_user_func($this -> ctx[$method], ...$value);
+                }
+            }
             trigger_error("PHPec -> {$method} not defined", E_USER_ERROR);
         }
     }
