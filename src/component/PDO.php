@@ -7,18 +7,19 @@ class PDO {
 
     use \PHPec\DITrait;
 
-
     public function __construct($table = '', $schema = [])
     {
         $this -> Logger -> debug('PDO __construct, table=%s', $table);
         $this -> table  = $table;
         $this -> schema = $schema;
         //todo: schema check
+        $this -> wConn = $this -> Connection -> getPDO(); //写操作句柄
+        $this -> rConn = $this -> Connection -> getPDO('S'); //读操作句柄
     }
 
     public function query($sql, $param = null)
     {
-        $this -> Logger -> debug('PDO query,sql=%s', $sql);
+        $this -> Logger -> debug('PDO query,sql=%s,params=%s', $sql, json_encode($param));
         $ph = substr_count($sql, "?");
         $params = [];
         if ($ph > 0 && $param !== null) {
@@ -36,15 +37,21 @@ class PDO {
                 } 
             }
         }
-        $stmt = $this -> PDOConn -> prepare($sql);
+
+        $op = strtolower(substr($sql, 0, 6)) == 'select';
+        if ($op == 'select') {
+            $stmt = $this -> rConn -> prepare($sql);
+        } else {
+            $stmt = $this -> wConn -> prepare($sql);
+        }
         foreach ($params as $k => $v) {
             $stmt -> bindParam($k+1, $params[$k], self::_getType($v));
         }
-        if ($stmt->execute()) {
-            if (strtolower(substr($sql, 0, 6)) == 'select') {
-                return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        if ($stmt -> execute()) {
+            if ($op == 'select') {
+                return $stmt -> fetchAll(\PDO::FETCH_ASSOC);
             }
-            else return $stmt->rowCount();
+            else return $stmt -> rowCount();
         } else {
             return false;
         }
@@ -61,7 +68,7 @@ class PDO {
         $sql = sprintf("insert into `%s` set %s", $this -> table, $d[0]);
         $result = $this -> query($sql, $d[1]);
         if ($result) {
-            return $this -> PDOConn -> lastInsertId();
+            return $this -> wConn -> lastInsertId();
         }
         return false;
     }
@@ -73,7 +80,7 @@ class PDO {
         $param = isset($w[1]) ? $w[1] : null;
         return $this -> query($sql, $param);
     }
-    public function update($where,Array $data)
+    public function update($where, Array $data)
     {
         $this -> _checkTable();
         $d = self::_buildData($data);
@@ -93,41 +100,41 @@ class PDO {
         $fields = isset($options['fields']) ? $options['fields'] : '*';
         $sort = '';
         if (isset($options['sort'])) {
-            if(!is_string($options['sort'])) trigger_error('PDO Error: options sort invalid', E_USER_ERROR);
+            if (!is_string($options['sort'])) trigger_error('PDO Error: options sort invalid', E_USER_ERROR);
             $sort = ' order by '.$options['sort'];
         }
         $page     = isset($options['page']) ? intval($options['page']) :  1;
         $pageSize = isset($options['pageSize']) ? intval($options['pageSize']) : 20;
-        $limit = sprintf(" limit %d,%d", ($page-1)*$pageSize, $pageSize);
-        $sql = sprintf("select %s from %s where %s%s%s", $fields, $this -> table, $w[0], $sort, $limit);
-        $params = isset($w[1]) ? $w[1] : null;
+        $limit    = sprintf(" limit %d,%d", ($page-1)*$pageSize, $pageSize);
+        $sql      = sprintf("select %s from %s where %s%s%s", $fields, $this -> table, $w[0], $sort, $limit);
+        $params   = isset($w[1]) ? $w[1] : null;
         return $this -> query($sql, $params);
     }
     //查询数据，只获取一行
     public function getOne($where, Array $options =[])
     {
         $this -> _checkTable();
-        $w = self::_buildWhere($where);
+        $w      = self::_buildWhere($where);
         $fields = isset($options['fields']) ? $options['fields'] : '*';
-        $sort = '';
+        $sort   = '';
         if (isset($options['sort'])) {
-            if(!is_string($options['sort'])) trigger_error('PDO Error: options sort invalid', E_USER_ERROR);
+            if (!is_string($options['sort'])) trigger_error('PDO Error: options sort invalid', E_USER_ERROR);
             $sort = ' order by '.$options['sort'];
         }
-        $sql = sprintf("select %s from %s where %s%s limit 1", $fields, $this -> table, $w[0], $sort);
+        $sql    = sprintf("select %s from %s where %s%s limit 1", $fields, $this -> table, $w[0], $sort);
         $params = isset($w[1]) ? $w[1] : null;
-        $result = $this -> query($sql,$params);
+        $result = $this -> query($sql, $params);
         return isset($result[0]) ? $result[0] : $result;
     }
     public function transaction(\Closure $query)
     {
         try {
-            $this -> PDOConn -> beginTransaction();
+            $this -> wConn -> beginTransaction();
             $re = $query($err);
             if ($re === false) throw new \Exception("Transaction fail: ".$err); 
-            return $this -> PDOConn -> commit();
+            return $this -> wConn -> commit();
         } catch(\Exception $ex) {
-            $this -> PDOConn -> rollback();
+            $this -> wConn -> rollback();
             $this -> Logger -> error($ex -> getMessage());
             return false;
         }
