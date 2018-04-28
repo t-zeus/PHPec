@@ -1,10 +1,11 @@
 <?php
 namespace PHPec\connections;
 
-class PDO extends Base {
-
+class PDO extends Base
+{
     //创建连接
-    function conn($db, $persistent){
+    function conn($db, $persistent)
+    {
         if (empty($db['dsn']) || empty($db['user']) || !isset($db['password'])) {
             trigger_error("PDO Error: miss connect param", E_USER_ERROR);
         }
@@ -14,5 +15,4 @@ class PDO extends Base {
         }
         return new \PDO($db['dsn'], $db['user'], $db['password'], $options);
     }
-
 }

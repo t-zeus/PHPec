@@ -2,7 +2,8 @@
 namespace PHPec\connections;
 
 //连接抽象类
-abstract class Base {
+abstract class Base
+{
     use \PHPec\DITrait;
 
     protected $handle = [];
@@ -20,7 +21,8 @@ abstract class Base {
      *
      * @param string $type M|S,  获取的连接类型（主或从）
      */
-    public function getConn($type) {
+    public function getConn($type)
+    {
         $sClass = get_called_class();
         $key    = strtolower(substr($sClass, strrpos($sClass, "\\")+1));
         if (empty($this -> handle[$type])) {
@@ -48,7 +50,8 @@ abstract class Base {
     }
 
     //从多个连接参数中选择一个，默认为随机，如有需要，可重写为其它方式
-    protected function select($target) {
+    protected function select($target)
+    {
         if (!empty($target[0]) && is_array($target[0])) {
             $idx = array_rand($target);
             $target = $target[$idx];
