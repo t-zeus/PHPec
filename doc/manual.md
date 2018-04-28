@@ -39,7 +39,9 @@ APP_SRC/
     composer.json 
 ```
 
-## 项目配置
+## 内置组件
+
+### 配置读取(Config)
 
 框架提供了一个Config组件进行配置项目的读取，你也可以自定义Config服务来进行改写读取方式（比如修改为指定的mc服务器来读取）。Config可以通过PHPec\DITrait来自动注入到相应的中间件、控制器或其它服务组件。
 
@@ -78,8 +80,9 @@ $this -> Config -> get('app_name','MyApp');
 $this -> Config -> get("log.path"); //读取log字段下的path，可支持多层，用.分隔
 ```
 
-## 日志处理
+### 日志处理(Logger)
 
+### 数据较验(Validator)
 
 
 ## 中间件
@@ -163,11 +166,24 @@ $app -> use('MiddleName','param');
 
 该中间件负责一些通用的输入输出处理，框架会默认在所有其它中间件之前自动调用该中间件，开发者无需手动调用，也无法取消。
 
-首先，对输入参数进行处理，将$_GET,$_POST,$_SERVER进行影射，比如：
+首先，CommonIO的enter方法对输入参数进行处理，将$_GET,$_POST,$_SERVER进行只读影射：
 
-$ctx -> _G 是$_GET的只读影射，用以保存原始的$_GET请求参数。同样，$ctx -> _H,$ctx -> _P, $ctx -> _C分别对应请求header，$_POST参数，$_COOKIE
+```
+$ctx -> _G => $_GET;
+$ctx -> _P => $_POST;
+$ctx -> _C => $_COOKIE;
+$ctx -> _H => $_SERVER;
+```
 
-同时，作为补充，提供了```$ctx -> req```数组，保存了上述的请求内容。
+同时，CommonIO也绑定了相应的GPC获取方法到$ctx，方便开发者获取相关请求数据。
+
+```
+//获取GPC中指定$key的数据，如果为空且设置了$default，则返回$default
+//如果指定了$filter，返回的是经$filter过滤的结果
+$ctx -> get($key, $default = null, Callable $filter = null);    //$_GET[$key];
+$ctx -> post($key, $default = null, Callabkle $filter = null);  //$_POST[$key];
+$ctx -> cookie($key, $default = null, Callable $filter = null); //$_COOKIE[$key];
+```
 
 > CommonIO会删除全局变量 $_GET,$_POST,$_REQUEST,$_SERVER
 
@@ -452,12 +468,11 @@ class MyService{
 + 使用$this -> XxxModel，会自动生成并注入以xxx为表名的数据Model对象。
 + 你也可以在配置中侃用container_bind => [interface => implClass] 来声明要注入接口的具体实现类（带命名空间）
 
-
 ## 编写和使用service
 
 service，一般用于封装业务逻辑，包括一般的业务逻辑，以及对数据模型进行的商业逻辑二次封装。比如，用户注册的service，可能包括写用户帐号表和用户基本信息表。
 
-要编写一个service很简单，请参照以下步骤和例子：
+要编写一个service很简单，以下是一个例子：
 
 service存放在APP_PATH/service/目录
 
@@ -466,7 +481,7 @@ service存放在APP_PATH/service/目录
 namespace myapp\service;
 
 //演示如何编写服务, Logger因为框架内也需要使用，所以需实现\PHPec\interfaces\Logger接口，以保持一致
-class Loggers implements \PHPec\interfaces\Logger
+class Logger implements \PHPec\interfaces\Logger
 {
     //添加\PHPec\DITrait,可使用自动依赖注入
     use \PHPec\DITrait;
@@ -480,15 +495,52 @@ class Loggers implements \PHPec\interfaces\Logger
 
 ```
 
-
 > 要使用自定义service，一般使用DITrait的自动注入功能，具体使用见上一节。
 
 ### 接口约定
 
-- Config
-- Logger
-- Middleware
-- Auth
+PHPec框架对一些必要的依赖使用了接口方式进行约束。
+
+- \PHPec\interfaces\Config
+
+```
+//获取一个指定的配置项，使用$default指定缺省值
+public function get($k, $default = null);
+```
+
+- \PHPec\interfaces\Logger
+
+```
+//处理各种类型的log，类似printf，$msg为可支持占位符的信息内容，$args为占位内容
+public function debug($msg, ...$args);
+public function info($msg, ...$args);
+public function event($msg, ...$args);
+public function notice($msg, ...$args);
+public function warning($msg, ...$args);
+public function error($msg, ...$args);
+//一般只需实现log方法，以上方法都是调用log方法，使用\PHPec\LoggerTrait载入即可
+public function log($level, $msg, ...$args);
+```
+
+- \PHPec\interfaces\Middleware
+
+```
+//中间件接口，定义一进一出两个方法，均接收全局上下文对象$ctx作为参数
+public function enter($ctx); //注意，如果该方法return false，则后续中间件会被跳过
+public function leave($ctx);
+```
+
+- \PHPec\interfaces\Auth
+
+用于JWT和SessionAuth的帐号验证接口。需注意的是，框架仅约束了接口，并未提供具体实现，如果你需要用到JWT或SessionAuth中间件，需提供一个实现了该接口的Auth服务。
+
+```
+/**
+ * 验证用户帐号密码的接口
+ * 传入$account和$password，如果验证通过，返回用户相关数据（数组），失败返回false
+ */
+public function verify($account, $password);
+```
 
 ## $ctx 对象
 
@@ -506,12 +558,17 @@ class Task{
 }
 ```
 
-1. $ctx 使用了魔术方法__set和__get来设置和读取未定义属性，开发者可以使用$ctx -> xxx来获取或设置一个属性，比如：
+1. $ctx 使用了魔术方法__set和__get来设置和读取未定义属性，开发者可以使用$ctx -> xxx来获取或设置一个属性或方法，比如：
 
 ```
 $ctx -> name = 'aaa';
 $ctx -> status = 404;
+$ctx -> hello = function($name) {
+    return "hello $name";
+};
 ```
+
+> 内置的CommonIO中间件就是通过该特性提供了获取GPC内容的属性和方法。
 
 2. $ctx是全局引用，即你在某个位置个性了某个属性后，在其它地方也会生效，比如你在中间件的方法中设置了$ctx -> body，在控制器中也能读到。
 
@@ -519,16 +576,17 @@ $ctx -> status = 404;
 
 4. 数组只能一次设置（如果是对象，则可以先赋值后再设置）
 
+```
 $ctx -> ids = [1,2,3,4]; //ok
 $ctx -> ids = [];
 $ctx -> ids[0] = 1; // not ok
 $ctx -> obj = new stdClass;
 $ctx -> obj -> id = 12; //ok
+```
 
 5. 提供 $ctx -> setHeader($k,$v) 设置响应的header
 
 6. 提供 $ctx -> res($body, $status = 200) 来设置输出内容和状态码
-
 
 ## session处理
 
@@ -550,6 +608,7 @@ session.handler可以指定框架提供的SessionHandler，也可以指定自定
 要实现一个自定义的SessionHandler，方法是：
 
 1. 编写自定义的SesssionHandler，并放置在APP_PATH/service/目录
+
 2. 实现\SessionHandlerInterface接口
 
 以下是一个实现模板：
