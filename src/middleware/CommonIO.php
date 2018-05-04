@@ -25,7 +25,12 @@ final class CommonIO implements \PHPec\interfaces\Middleware
         
         $ctx -> _H = getallheaders();
         $ctx -> _G = $_GET;
-        $ctx -> _P = $_POST;
+        $input  = file_get_contents('php://input');
+        if ($ctx -> _H['Content-Type'] == 'application/json') {
+            $data = json_decode($input, true);
+        } else parse_str($input, $data);
+
+        $ctx -> _P = empty($data) ? $_POST : array_merge($_POST, $data);
         $ctx -> _C = $_COOKIE;
 
         $ctx -> get = function($k, $default = null, Callable $filter = null) use($ctx) {
@@ -104,16 +109,12 @@ final class CommonIO implements \PHPec\interfaces\Middleware
         } else {
             http_response_code($ctx -> status);
             $ctx -> setHeader('Content-Type', 'text/html;charset=utf-8');
-            $contentType = 'text/html;charset=utf-8';
             if (null !== $ctx -> body) {
                 if (is_array($ctx -> body) || is_object($ctx -> body)) {
-                    $contentType = "application/json;charset=utf-8";
+                    $ctx -> setHeader('Content-Type',"application/json;charset=utf-8");
                     $ctx -> body = json_encode($ctx -> body);
                 }
             } 
-            if (empty($ctx -> resHeaders['Content-Type'])) {
-                $ctx -> setHeader('Content-Type', $contentType);
-            }
             if (count($ctx -> resHeaders) > 0) {
                 if (headers_sent($f,$l)) {
                     trigger_error("Header already sent at $f line $l", E_USER_WARNING);
