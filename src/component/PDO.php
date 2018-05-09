@@ -7,18 +7,27 @@ class PDO {
 
     use \PHPec\DITrait;
 
-
     public function __construct($table = '', $schema = [])
     {
         $this -> Logger -> debug('PDO __construct, table=%s', $table);
-        $this -> table  = $table;
+
+        $this -> table  = strtolower(preg_replace( '/([a-z0-9])([A-Z])/', "$1_$2",  $table));
+        $prefix = $this -> Config -> get('pdo.prefix','');
+        $this -> table = $prefix.$this->table;
         $this -> schema = $schema;
         //todo: schema check
     }
 
+
+    public function isExists()
+    {
+        $this -> _checkTable();
+        return $this -> query(sprintf("show tables like '%s'", $this -> table));
+    }
+
     public function query($sql, $param = null)
     {
-        $this -> Logger -> debug('PDO query,sql=%s', $sql);
+        $this -> Logger -> debug('PDO query,sql=%s,params=%s', $sql, json_encode($param));
         $ph = substr_count($sql, "?");
         $params = [];
         if ($ph > 0 && $param !== null) {
@@ -36,15 +45,21 @@ class PDO {
                 } 
             }
         }
-        $stmt = $this -> PDOConn -> prepare($sql);
+
+        $op = strtolower(substr($sql, 0, 6)) == 'select';
+        if ($op == 'select') {
+            $stmt = $this -> Connection -> getPDO('S') -> prepare($sql);
+        } else {
+            $stmt = $this -> Connection -> getPDO() -> prepare($sql);
+        }
         foreach ($params as $k => $v) {
             $stmt -> bindParam($k+1, $params[$k], self::_getType($v));
         }
-        if ($stmt->execute()) {
-            if (strtolower(substr($sql, 0, 6)) == 'select') {
-                return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        if ($stmt -> execute()) {
+            if ($op == 'select') {
+                return $stmt -> fetchAll(\PDO::FETCH_ASSOC);
             }
-            else return $stmt->rowCount();
+            else return $stmt -> rowCount();
         } else {
             return false;
         }
@@ -61,7 +76,8 @@ class PDO {
         $sql = sprintf("insert into `%s` set %s", $this -> table, $d[0]);
         $result = $this -> query($sql, $d[1]);
         if ($result) {
-            return $this -> PDOConn -> lastInsertId();
+            $id =  $this -> Connection -> getPDO() -> lastInsertId();
+            return intval($id);
         }
         return false;
     }
@@ -73,7 +89,7 @@ class PDO {
         $param = isset($w[1]) ? $w[1] : null;
         return $this -> query($sql, $param);
     }
-    public function update($where,Array $data)
+    public function update($where, Array $data)
     {
         $this -> _checkTable();
         $d = self::_buildData($data);
@@ -91,43 +107,44 @@ class PDO {
         $this -> _checkTable();
         $w = self::_buildWhere($where);
         $fields = isset($options['fields']) ? $options['fields'] : '*';
+        //todo: quote fields
         $sort = '';
         if (isset($options['sort'])) {
-            if(!is_string($options['sort'])) trigger_error('PDO Error: options sort invalid', E_USER_ERROR);
+            if (!is_string($options['sort'])) trigger_error('PDO Error: options sort invalid', E_USER_ERROR);
             $sort = ' order by '.$options['sort'];
         }
         $page     = isset($options['page']) ? intval($options['page']) :  1;
         $pageSize = isset($options['pageSize']) ? intval($options['pageSize']) : 20;
-        $limit = sprintf(" limit %d,%d", ($page-1)*$pageSize, $pageSize);
-        $sql = sprintf("select %s from %s where %s%s%s", $fields, $this -> table, $w[0], $sort, $limit);
-        $params = isset($w[1]) ? $w[1] : null;
+        $limit    = sprintf(" limit %d,%d", ($page-1)*$pageSize, $pageSize);
+        $sql      = sprintf("select %s from %s where %s%s%s", self::_buildField($fields), $this -> table, $w[0], $sort, $limit);
+        $params   = isset($w[1]) ? $w[1] : null;
         return $this -> query($sql, $params);
     }
     //查询数据，只获取一行
     public function getOne($where, Array $options =[])
     {
         $this -> _checkTable();
-        $w = self::_buildWhere($where);
+        $w      = self::_buildWhere($where);
         $fields = isset($options['fields']) ? $options['fields'] : '*';
-        $sort = '';
+        $sort   = '';
         if (isset($options['sort'])) {
-            if(!is_string($options['sort'])) trigger_error('PDO Error: options sort invalid', E_USER_ERROR);
+            if (!is_string($options['sort'])) trigger_error('PDO Error: options sort invalid', E_USER_ERROR);
             $sort = ' order by '.$options['sort'];
         }
-        $sql = sprintf("select %s from %s where %s%s limit 1", $fields, $this -> table, $w[0], $sort);
+        $sql    = sprintf("select %s from %s where %s%s limit 1", self::_buildField($fields), $this -> table, $w[0], $sort);
         $params = isset($w[1]) ? $w[1] : null;
-        $result = $this -> query($sql,$params);
+        $result = $this -> query($sql, $params);
         return isset($result[0]) ? $result[0] : $result;
     }
     public function transaction(\Closure $query)
     {
         try {
-            $this -> PDOConn -> beginTransaction();
+            $this -> Connection -> getPDO() -> beginTransaction();
             $re = $query($err);
             if ($re === false) throw new \Exception("Transaction fail: ".$err); 
-            return $this -> PDOConn -> commit();
+            return $this -> Connection -> getPDO() -> commit();
         } catch(\Exception $ex) {
-            $this -> PDOConn -> rollback();
+            $this -> Connection -> getPDO() -> rollback();
             $this -> Logger -> error($ex -> getMessage());
             return false;
         }
@@ -161,14 +178,14 @@ class PDO {
             $op = strtolower($arrs[1]);
             if ($op == ' in ' || $op == ' not in ') {
                 return [$arrs[0].$op.'(?)', [explode(",", trim($arrs[2], '()'))]];
-            } elseif($op == ' is ' || $op == ' is not ') {
+            } elseif ($op == ' is ' || $op == ' is not ') {
                 return [$arrs[0].$op." null"];
             } else {
                 $params = $arrs[2];
                 if (!is_array($params)) $params = [$params];
                 return [$arrs[0].$op."?", $params];
             }
-        } elseif(is_array($where) && count($where) == 2) {
+        } elseif (is_array($where) && count($where) == 2) {
             if (!is_array($where[1])) $where[1] = [$where[1]];
             if (substr_count($where[0],"?") != count($where[1])) {
                 trigger_error('PDO Error: $where exp invalid -- placeholder not match', E_USER_ERROR);
@@ -178,6 +195,17 @@ class PDO {
             trigger_error('PDO Error: $where exp invalid', E_USER_ERROR);
         }
     }
+    //处理select的fields
+    private static function _buildField($field) {
+        if ($field == '*') return $field;
+        else {
+            $fields = explode(",", $field);
+            foreach ($fields as $k=>$v) {
+                $fields[$k] = "`{$v}`";
+            }
+            return implode(",", $fields);
+        }
+    } 
     //处理insert或update的data,['a'=>'b','a1'=>'b2'] => ['a=?,a1=?',['b','b2']]
     static function _buildData($data)
     {

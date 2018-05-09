@@ -17,20 +17,50 @@ if (!function_exists('getallheaders')) {
 final class CommonIO implements \PHPec\interfaces\Middleware
 {
     //Input handler
-    public function begin($ctx)
+    public function enter($ctx)
     {
         $ctx -> method    = isset($_SERVER['REQUEST_METHOD']) ? strtoupper($_SERVER['REQUEST_METHOD']) :'GET';
         $ctx -> pathinfo  = isset($_SERVER['PATH_INFO']) ? $_SERVER['PATH_INFO'] : null;
         $ctx -> query_str = isset($_SERVER['QUERY_STRING']) ? $_SERVER['QUERY_STRING'] : '';
-        $ctx -> req = new \stdClass;
-        $ctx -> req -> header = getallheaders();
-        $ctx -> req -> get    = $_GET;
-        $ctx -> req -> post   = $_POST;
-        $ctx -> req -> cookie = $_COOKIE;
-        //unset($_POST,$_GET,$_REQUEST,$_SERVER);
+        
+        $ctx -> _H = getallheaders();
+        $ctx -> _G = $_GET;
+        $input  = file_get_contents('php://input');
+        if ($ctx -> _H['Content-Type'] == 'application/json') {
+            $data = json_decode($input, true);
+        } else parse_str($input, $data);
+
+        $ctx -> _P = empty($data) ? $_POST : array_merge($_POST, $data);
+        $ctx -> _C = $_COOKIE;
+
+        $ctx -> get = function($k, $default = null, Callable $filter = null) use($ctx) {
+            $data = isset($ctx -> _G[$k]) ? $ctx -> _G[$k] : $default;
+            if ($filter) {
+                $data = $filter($data);
+            }
+            return $data;
+        };
+
+        $ctx -> post = function($k, $default = null, Callable $filter = null) use($ctx) {
+            $data = isset($ctx -> _P[$k]) ? $ctx -> _P[$k] : $default;
+            if ($filter) {
+                $data = $filter($data);
+            }
+            return $data;
+        };
+
+        $ctx -> cookie = function($k, $default = null, Callable $filter = null) use($ctx) {
+            $data = isset($ctx -> _C[$k]) ? $ctx -> _C[$k] : $default;
+            if ($filter) {
+                $data = $filter($data);
+            }
+            return $data;
+        };
+        
+        unset($_POST,$_GET,$_REQUEST,$_SERVER); //$_COOKIE和$_SESSION保留
     }
     //Output handler
-    public function end($ctx)
+    public function leave($ctx)
     {
         $code = [
             100 => "HTTP/1.1 100 Continue",
@@ -79,16 +109,12 @@ final class CommonIO implements \PHPec\interfaces\Middleware
         } else {
             http_response_code($ctx -> status);
             $ctx -> setHeader('Content-Type', 'text/html;charset=utf-8');
-            $contentType = 'text/html;charset=utf-8';
             if (null !== $ctx -> body) {
                 if (is_array($ctx -> body) || is_object($ctx -> body)) {
-                    $contentType = "application/json;charset=utf-8";
+                    $ctx -> setHeader('Content-Type',"application/json;charset=utf-8");
                     $ctx -> body = json_encode($ctx -> body);
                 }
             } 
-            if (empty($ctx -> resHeaders['Content-Type'])) {
-                $ctx -> setHeader('Content-Type', $contentType);
-            }
             if (count($ctx -> resHeaders) > 0) {
                 if (headers_sent($f,$l)) {
                     trigger_error("Header already sent at $f line $l", E_USER_WARNING);

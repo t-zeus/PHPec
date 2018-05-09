@@ -10,7 +10,9 @@ spl_autoload_register(function($class){
         $prefix = __DIR__;
     } elseif ($ns == APP_NS) {
         $prefix = APP_PATH;
+    } else {
+        return;
     }
     $classFile = $prefix. '/'. implode("/",$path).'.php';
-    require $classFile;
+    file_exists($classFile) && require $classFile;
 });

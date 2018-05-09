@@ -11,11 +11,11 @@ interface Middleware
      * @param  Object $ctx PHPec app
      * @return bool     don't yield next if return false 
      */
-    public function begin($ctx);
+    public function enter($ctx);
      /**
      * action of middleware exit
      * @param  Object $ctx PHPec app
      * @return none
      */
-    public function end($ctx);
+    public function leave($ctx);
 }

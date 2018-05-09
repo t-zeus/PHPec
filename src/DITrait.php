@@ -11,7 +11,8 @@ Trait DITrait
 {   
     private $native = [
         'Logger' => '\PHPec\interfaces\Logger',
-        'Config' => '\PHPec\interfaces\Config'
+        'Config' => '\PHPec\interfaces\Config',
+        'Auth'   => '\PHPec\interfaces\Auth'
     ];
     public function __get($k)
     {

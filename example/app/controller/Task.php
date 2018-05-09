@@ -30,6 +30,7 @@ class Task extends \PHPec\BaseControl
 
     function _before($ctx)
     {
+        //$this -> halt = true; 
         //$ctx -> body ='[before]';
     }
 }

@@ -32,9 +32,9 @@ final class App
         if (!$m) return;
         $this -> mGenerator -> next();
         if ($m instanceof interfaces\Middleware) {
-            $r = $m -> begin($this);
-            if (false !== $r) $this -> next(); //do next when begin return not false;
-            $m -> end($this);
+            $r = $m -> enter($this);
+            if (false !== $r) $this -> next(); //do next when enter return not false;
+            $m -> leave($this);
         } else {
             $m($this);
         }
@@ -64,7 +64,12 @@ final class App
                 $param = empty($value) ? null : $value[0];
                 $this -> _add($m, $param);
             }
-        }else{
+        } else {
+            if (in_array($method, ['get','post','cookie'])) {
+                if (isset($this -> ctx[$method]) && is_callable($this -> ctx[$method]) ) {
+                    return call_user_func($this -> ctx[$method], ...$value);
+                }
+            }
             trigger_error("PHPec -> {$method} not defined", E_USER_ERROR);
         }
     }
